@@ -8,6 +8,9 @@ app = Flask(__name__)
 def Home():
     return render_template('user.html')
 
+@app.route('/transaction')
+def transaction():
+    return render_template('transaction.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
