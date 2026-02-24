@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Credit Card Details</title>
+</head>
+<body>
+
+<h2>Credit Card Details</h2>
+
+<form action="#" method="post">
+
+    <label>Card Holder Name</label><br>
+    <input type="text" name="cardholder" placeholder="Enter name" required><br><br>
+
+    <label>Card Number</label><br>
+    <input type="text" name="cardnumber" placeholder="XXXX XXXX XXXX XXXX" maxlength="19" required><br><br>
+
+    <label>Card Type</label><br>
+    <select name="cardtype" required>
+        <option value="">Select Card Type</option>
+        <option value="Visa">Visa</option>
+        <option value="MasterCard">MasterCard</option>
+        <option value="RuPay">RuPay</option>
+        <option value="American Express">American Express</option>
+    </select><br><br>
+
+    <label>Expiry Date</label><br>
+    <input type="month" name="expiry" required><br><br>
+
+    <label>CVV</label><br>
+    <input type="password" name="cvv" maxlength="3" required><br><br>
+
+    <button type="submit">Submit</button>
+
+</form>
+
+</body>
+</html>

@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def Home():
-    return render_template('user.html')
+    return render_template('card.html')
 
 @app.route('/transaction')
 def transaction():
