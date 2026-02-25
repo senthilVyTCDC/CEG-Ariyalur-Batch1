@@ -1,59 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Document</title>
+    <title>Transaction Table</title>
 </head>
 <body>
-    <h1>Transaction Details</h1>
-    <body>
 
-    <h1>Transaction Details</h1>
+<h2>Transaction Data</h2>
 
-    <table border="1">
-        <tr>
-            <th>Transaction ID</th>
-            <th>Time</th>
-            <th>Amount</th>
-            <th>V1</th>
-            <th>V2</th>
-            <th>Status</th>
-        </tr>
+<table border="1">
 
-        <tr>
-            <td>1001</td>
-            <td>12:05 PM</td>
-            <td>2500</td>
-            <td>0.45</td>
-            <td>-1.23</td>
-            <td>Legitimate</td>
-        </tr>
+<tr>
+    <th>Transaction ID</th>
+    <th>User ID</th>
+    <th>Card ID</th>
+    <th>Merchant ID</th>
+    <th>Amount</th>
+    <th>Transaction Time</th>
+    <th>Status</th>
+</tr>
 
-        <tr>
-            <td>1002</td>
-            <td>01:15 PM</td>
-            <td>9800</td>
-            <td>-2.11</td>
-            <td>3.45</td>
-            <td>Fraud</td>
-        </tr>
+{% for row in records %}
+<tr>
+    <td>{{ row.transaction_id }}</td>
+    <td>{{ row.user_id }}</td>
+    <td>{{ row.card_id }}</td>
+    <td>{{ row.merchant_id }}</td>
+    <td>{{ row.amount }}</td>
+    <td>{{ row.transaction_time }}</td>
+    <td>{{ row.status }}</td>
+</tr>
+{% endfor %}
 
-        <tr>
-            <td>1003</td>
-            <td>02:30 PM</td>
-            <td>1200</td>
-            <td>1.23</td>
-            <td>0.78</td>
-            <td>Legitimate</td>
-        </tr>
+</table>
 
-    </table>
-
-    <br><br>
-
-    <a href="/">
-        <button>Back to Home</button>
-    </a>
-
-</body>
 </body>
 </html>
