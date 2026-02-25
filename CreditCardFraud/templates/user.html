@@ -1,74 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Credit Card User Page</title>
+    <title>User Table</title>
 </head>
 <body>
 
-    <h1 align="center">Credit Card User Dashboard</h1>
-    <hr>
+<h2>User Details</h2>
 
-    <h2>Card Details</h2>
-    <p><b>Bank Name:</b> ABC Bank</p>
-    <p><b>Card Holder Name:</b> Revanth Ajay</p>
-    <p><b>Card Number:</b> **** **** **** 1234</p>
-    <p><b>Expiry Date:</b> 12/2028</p>
+<table border="1">
+    <tr>
+        <th>User ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+    </tr>
 
-    <hr>
+    {% for user in users %}
+    <tr>
+        <td>{{ user[0] }}</td>
+        <td>{{ user[1] }}</td>
+        <td>{{ user[2] }}</td>
+        <td>{{ user[3] }}</td>
+    </tr>
+    {% endfor %}
 
-    <h2>Account Summary</h2>
-    <p><b>Total Credit Limit:</b> ₹1,00,000</p>
-    <p><b>Available Balance:</b> ₹75,000</p>
-    <p><b>Current Outstanding:</b> ₹25,000</p>
-    <p><b>Payment Due Date:</b> 05 March 2026</p>
-
-    <hr>
-
-    <h2>Recent Transactions</h2>
-
-    <table border="1" width="100%">
-        <tr>
-            <th>Date</th>
-            <th>Description</th>
-            <th>Amount (₹)</th>
-        </tr>
-        <tr>
-            <td>20-02-2026</td>
-            <td>Amazon Purchase</td>
-            <td>2,500</td>
-        </tr>
-        <tr>
-            <td>18-02-2026</td>
-            <td>Swiggy Order</td>
-            <td>850</td>
-        </tr>
-        <tr>
-            <td>15-02-2026</td>
-            <td>Petrol Pump</td>
-            <td>3,200</td>
-        </tr>
-    </table>
-
-    <hr>
-
-    <h2>Make Payment</h2>
-    <form>
-        <label>Enter Amount:</label>
-        <input type="text" name="amount"><br><br>
-
-        <label>Select Payment Method:</label>
-        <select>
-            <option>UPI</option>
-            <option>Debit Card</option>
-            <option>Net Banking</option>
-        </select><br><br>
-
-        <input type="submit" value="Pay Now">
-    </form>
-
-    <hr>
-
-    <p align="center">© 2026 Credit Card Management System</p>
+</table>
 
 </body>
 </html>

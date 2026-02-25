@@ -3,17 +3,13 @@ import mysql.connector
 
 app = Flask(__name__)
 
-
+# Connect to MySQL
 db = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="rajesh",
-    database="creditcardfraud",
-    port=3306
+    password="revanth",  # change this
+    database="CreditCardFraud"
 )
-
-cursor = db.cursor(dictionary=True)
-
 
 @app.route('/')
 def Home():
@@ -26,5 +22,12 @@ def transaction():
 
     return render_template("transaction.html", records=data)
 
-if __name__ == '__main__':
+@app.route('/user')
+def user():
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM user")
+    data = cursor.fetchall()
+    return render_template("user.html", records=data)
+
+if __name__ == "__main__":
     app.run(debug=True)
