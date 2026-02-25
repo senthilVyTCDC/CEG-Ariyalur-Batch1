@@ -15,12 +15,12 @@
         <th>Phone</th>
     </tr>
 
-    {% for user in users %}
+    {% for row in records %}
     <tr>
-        <td>{{ user[0] }}</td>
-        <td>{{ user[1] }}</td>
-        <td>{{ user[2] }}</td>
-        <td>{{ user[3] }}</td>
+        <td>{{ row[0] }}</td>
+        <td>{{ row[1] }}</td>
+        <td>{{ row[2] }}</td>
+        <td>{{ row[3] }}</td>
     </tr>
     {% endfor %}
 

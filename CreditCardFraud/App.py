@@ -10,7 +10,7 @@ db = mysql.connector.connect(
     password="revanth",  # change this
     database="CreditCardFraud"
 )
-
+cursor = db.cursor(dictionary=True)
 @app.route('/')
 def Home():
     return render_template('index.html')
@@ -27,6 +27,7 @@ def user():
     cursor = db.cursor()
     cursor.execute("SELECT * FROM user")
     data = cursor.fetchall()
+    print(data)   # 👈 ADD THIS LINE (important)
     return render_template("user.html", records=data)
 
 if __name__ == "__main__":
