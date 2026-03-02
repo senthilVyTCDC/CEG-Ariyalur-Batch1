@@ -1,0 +1,15 @@
+<h2>Edit Card</h2>
+
+<form method="POST">
+
+    User ID:
+    <input type="text" name="user_id" value="{{ card.user_id }}"><br><br>
+    Card Number:
+    <input type="text" name="card_number" value="{{ card.card_number }}"><br><br>
+    Card Type:
+    <input type="text" name="card_type" value="{{ card.card_type }}"><br><br>
+    Expiry Date:
+    <input type="date" name="expiry_date" value="{{ card.expiry_date }}"><br><br>
+    <button type="submit">Update</button>
+
+</form>

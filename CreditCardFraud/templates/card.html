@@ -14,6 +14,7 @@
         <th>Card Number</th>
         <th>Card Type</th>
         <th>Expiry Date</th>
+        <th>Action</th>   
     </tr>
 
     {% for row in card %}
@@ -23,6 +24,7 @@
         <td>{{ row.card_number }}</td>
         <td>{{ row.card_type }}</td>
         <td>{{ row.expiry_date }}</td>
+        <td><a href="/edit/{{ row.card_id }}">Edit</a></td>
     </tr>
     {% endfor %}
 
