@@ -73,5 +73,15 @@ def edit_card(card_id):
     card = cursor.fetchone()
     return render_template('edit_card.html', card=card)
 
+# DELETE
+@app.route('/delete/<int:card_id>')
+def delete_card(card_id):
+
+    sql = "DELETE FROM card WHERE card_id=%s"
+    cursor.execute(sql, (card_id,))
+    dbconnection.commit()
+
+    return redirect(url_for('Display_Card'))
+
 if __name__ == '__main__':
     app.run(debug=True)
