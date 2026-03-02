@@ -25,8 +25,11 @@
         <td>{{ row.card_number }}</td>
         <td>{{ row.card_type }}</td>
         <td>{{ row.expiry_date }}</td>
-        <td><a href="/edit/{{ row.card_id }}">Edit</a></td>
-        <td><a href="/delete/{{ row.card_id }}">Delete</a></td>
+        <td>
+        <form action="{{ url_for('delete_card', card_id=row.card_id) }}" method="POST">
+            <button type="submit">Delete</button>
+        </form>
+    </td>
     </tr>
     {% endfor %}
 

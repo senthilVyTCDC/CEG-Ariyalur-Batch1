@@ -1,5 +1,4 @@
-from flask import Flask, render_template
-from flask import Flask, render_template, request, redirect, url_for  # ✅ correct import
+from flask import Flask, render_template, request, redirect, url_for
 import mysql.connector
 
 app = Flask(__name__)
@@ -74,7 +73,7 @@ def edit_card(card_id):
     return render_template('edit_card.html', card=card)
 
 # DELETE
-@app.route('/delete/<int:card_id>')
+@app.route('/delete/<int:card_id>', methods=['POST'])
 def delete_card(card_id):
 
     sql = "DELETE FROM card WHERE card_id=%s"
