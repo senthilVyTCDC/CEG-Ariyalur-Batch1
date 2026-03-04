@@ -1,24 +1,34 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for
 import mysql.connector
 
 app = Flask(__name__)
 
-
-
 @app.route('/')
 def Home():
-    return render_template('card.html')
+    return render_template('index.html')
 
 
 @app.route('/transaction')
 def transaction():
     return render_template('transaction.html')
 
+# Database Connection
+dbconnection = mysql.connector.connect(
+    host='localhost',
+    user='root',
+    password='1234',
+    port=3306,
+    database='CreditCardFraud'
+)
+
+cursor = dbconnection.cursor(dictionary=True)
+
 @app.route('/card')
 def Display_Card():
     cursor.execute("SELECT * FROM card")
     card = cursor.fetchall()
     return render_template('card.html', card=card)
+
 
 
 # CREATE 
