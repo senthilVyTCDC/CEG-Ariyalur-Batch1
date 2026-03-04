@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Card</title>
+    <!-- Link external CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<h2>Edit Card</h2>
+
+<form method="POST">
+    <label>User ID:</label>
+    <input type="number" name="user_id" value="{{ card.user_id }}" required>
+
+    <label>Card Number:</label>
+    <input type="text" name="card_number" value="{{ card.card_number }}" required>
+
+    <label>Card Type:</label>
+    <input type="text" name="card_type" value="{{ card.card_type }}" required>
+
+    <label>Expiry Date:</label>
+    <input type="date" name="expiry_date" value="{{ card.expiry_date }}" required>
+
+    <button type="submit">Update</button>
+</form>
+
+<!-- Optional JS -->
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
