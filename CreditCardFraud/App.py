@@ -4,14 +4,15 @@ import math
 
 app = Flask(__name__)
 
-def get_db():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="rajesh",
-        database="creditcardfraud",
-        port=3306
-    )
+dbconnection = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="rajesh",
+    database="creditcardfraud",
+    port=3306
+)
+
+cursor = dbconnection.cursor(dictionary=True)
 
 @app.route('/')
 def home():
@@ -19,12 +20,10 @@ def home():
 
 @app.route('/transaction')
 def transaction():
+
     page = int(request.args.get('page', 1))
     per_page = 100
     offset = (page - 1) * per_page
-
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
 
     cursor.execute("SELECT COUNT(*) AS count FROM transaction_")
     total = cursor.fetchone()['count']
@@ -37,9 +36,6 @@ def transaction():
 
     records = cursor.fetchall()
 
-    cursor.close()
-    db.close()
-
     total_pages = math.ceil(total / per_page)
 
     return render_template(
@@ -49,38 +45,35 @@ def transaction():
         total_pages=total_pages
     )
 
-@app.route('/transaction_add_form')
-def transaction_add_form():
+@app.route('/transaction_add', methods=['GET', 'POST'])
+def transaction_add():
+
+    if request.method == 'POST':
+
+        cursor.execute("""
+            INSERT INTO transaction_
+            (user_id, card_id, merchant_id, amount, transaction_time, status)
+            VALUES (%s,%s,%s,%s,NOW(),%s)
+        """, (
+            request.form['user_id'],
+            request.form['card_id'],
+            request.form['merchant_id'],
+            request.form['amount'],
+            request.form['status']
+        ))
+
+        dbconnection.commit()
+
+        return redirect(url_for('transaction'))
+
     return render_template("transaction_add.html")
 
-@app.route('/transaction_add', methods=['POST'])
-def add_transaction():
-    db = get_db()
-    cursor = db.cursor()
-
-    cursor.execute("""
-        INSERT INTO transaction_
-        (user_id, card_id, merchant_id, amount, transaction_time, status)
-        VALUES (%s, %s, %s, %s, NOW(), %s)
-    """, (
-        request.form['user_id'],
-        request.form['card_id'],
-        request.form['merchant_id'],
-        request.form['amount'],
-        request.form['status']
-    ))
-
-    db.commit()
-    cursor.close()
-    db.close()
-
-    return redirect(url_for('transaction'))
+@app.route('/transaction_update', methods=['GET'])
+def transaction_update():
+    return render_template("transaction_update.html")
 
 @app.route('/transaction_update/<int:id>', methods=['POST'])
 def update_transaction(id):
-
-    db = get_db()
-    cursor = db.cursor()
 
     cursor.execute("""
         UPDATE transaction_
@@ -92,35 +85,25 @@ def update_transaction(id):
         id
     ))
 
-    db.commit()
-    cursor.close()
-    db.close()
+    dbconnection.commit()
 
     return redirect(url_for('transaction'))
+
+@app.route('/transaction_delete', methods=['GET'])
+def transaction_delete():
+    return render_template("transaction_delete.html")
 
 @app.route('/transaction_delete/<int:id>', methods=['POST'])
 def delete_transaction(id):
 
-    db = get_db()
-    cursor = db.cursor()
+    cursor.execute(
+        "DELETE FROM transaction_ WHERE transaction_id=%s",
+        (id,)
+    )
 
-    cursor.execute("DELETE FROM transaction_ WHERE transaction_id=%s", (id,))
-
-    db.commit()
-    cursor.close()
-    db.close()
+    dbconnection.commit()
 
     return redirect(url_for('transaction'))
-
-dbconnection = mysql.connector.connect(
-    host='localhost',
-    user='root',
-    password='1234',
-    port=3306,
-    database='CreditCardFraud'
-)
-
-cursor = dbconnection.cursor(dictionary=True)
 
 @app.route('/card')
 def Display_Card():
@@ -188,6 +171,14 @@ def delete_card(card_id):
     dbconnection.commit()
 
     return redirect(url_for('Display_Card'))
+
+@app.route('/user')
+def user():
+    return render_template("user.html")
+
+@app.route('/merchant')
+def merchant():
+    return render_template("merchant.html")
 
 if __name__ == "__main__":
     app.run(debug=True)

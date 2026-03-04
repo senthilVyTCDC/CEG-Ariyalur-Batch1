@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Transaction</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #eef2f3, #dfe9f3);
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        .form-card {
+            background: #fff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            margin-top: 70px;
+        }
+        h2 {
+            font-weight: 600;
+            color: #dc3545; /* red for delete */
+            margin-bottom: 20px;
+        }
+        p {
+            color: #6c757d;
+            margin-bottom: 25px;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        .form-control {
+            border-radius: 10px;
+            padding: 10px;
+            transition: all 0.2s ease-in-out;
+        }
+        .form-control:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 6px rgba(220, 53, 69, 0.3);
+        }
+        .btn {
+            border-radius: 25px;
+            padding: 10px 22px;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        .btn-danger {
+            background-color: #dc3545;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="form-card">
+                <h2 class="text-center">🗑 Delete Transaction</h2>
+                <p class="text-center">Enter the Transaction ID you want to remove.</p>
+
+                <form method="POST" onsubmit="deleteFormAction(this)">
+                    <div class="mb-3">
+                        <label class="form-label">Transaction ID</label>
+                        <input type="number" name="transaction_id" class="form-control"
+                               placeholder="Enter Transaction ID" required>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-danger me-2">Delete Transaction</button>
+                        <a href="{{ url_for('transaction') }}" class="btn btn-secondary">Back</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function deleteFormAction(form) {
+    var id = form.transaction_id.value;
+    form.action = "/transaction_delete/" + id;
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
