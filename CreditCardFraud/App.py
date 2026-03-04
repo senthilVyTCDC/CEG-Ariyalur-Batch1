@@ -116,11 +116,6 @@ def add_card():
 
     if request.method == 'POST':
 
-        sql = """
-        INSERT INTO card (user_id, card_number, card_type, expiry_date)
-        VALUES (%s, %s, %s, %s)
-        """
-
         values = (
             request.form['user_id'],
             request.form['card_number'],
@@ -128,7 +123,11 @@ def add_card():
             request.form['expiry_date']
         )
 
-        cursor.execute(sql, values)
+        cursor.execute(
+            "INSERT INTO card (user_id, card_number, card_type, expiry_date) VALUES (%s, %s, %s, %s)",
+            values
+        )
+
         dbconnection.commit()
 
         return redirect(url_for('Display_Card'))
@@ -174,7 +173,11 @@ def delete_card(card_id):
 
 @app.route('/user')
 def user():
-    return render_template("user.html")
+    cursor.execute("SELECT * FROM user")
+    data = cursor.fetchall()
+    return render_template("user.html", records=data)
+
+
 
 @app.route('/merchant')
 def merchant():
