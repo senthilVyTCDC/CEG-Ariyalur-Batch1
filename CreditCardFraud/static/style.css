@@ -1,0 +1,149 @@
+/* Page Styling */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: url("bg.jpg") no-repeat center center fixed;
+    background-size: cover;
+}
+
+/* Heading */
+h2 {
+    text-align: center;
+    color: white;
+}
+
+/* Add Button */
+a button {
+    display: block;
+    margin: 20px auto;
+    padding: 8px 18px;
+    background-color: green;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+a button:hover {
+    background-color: green;
+}
+
+/* Table Container */
+.card-table {
+    width: 85%;
+    margin: 30px auto;   /* 👈 CENTER */
+    border-collapse: collapse;  /* 👈 IMPORTANT */
+    background-color: rgba(255, 255, 255, 0.85);
+    border: 2px solid #333;   /* 👈 OUTER BOX */
+}
+
+/* Header */
+.card-table th {
+    background-color:blue;
+    color: white;
+    padding: 12px;
+    border: 1px solid #333;  /* 👈 VERTICAL + HORIZONTAL */
+    text-align: center;
+}
+
+/* Table Cells */
+.card-table td {
+    padding: 12px;
+    border: 1px solid #333;  /* 👈 GRID LINES */
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Hover */
+.card-table tr:hover {
+    background-color: #f2f2f2;
+}
+
+/* Buttons */
+.edit-btn {
+    background-color: purple;
+    color: white;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.delete-btn {
+    background-color:orangered;
+    color: white;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.edit-btn:hover {
+    background-color: indigo;
+}
+
+.delete-btn:hover {
+    background-color:red;
+}
+
+
+.form-container {
+    width: 400px;
+    margin: 80px auto;
+    padding: 30px;
+    border-radius: 20px;
+
+    /* TRUE Glass Effect */
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+
+    border: 1px solid rgba(255, 255, 255, 0.25);
+
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: red;
+    outline: none;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 10px;
+    background-color:blue;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.cancel-btn {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}

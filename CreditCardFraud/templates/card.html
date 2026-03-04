@@ -2,38 +2,55 @@
 <html>
 <head>
     <title>Credit Card Table</title>
+
+    <!-- Link external CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
 <h2>Credit Card Table</h2>
 
-<table border="1">
-    <tr>
-        <th>Card ID</th>
-        <th>User ID</th>
-        <th>Card Number</th>
-        <th>Card Type</th>
-        <th>Expiry Date</th>
-        <th>Edit</th>
-        <th>Delete</th>
-    </tr>
+<!-- Add New Card button -->
+<a href="{{ url_for('add_card') }}">
+    <button type="button" style="margin-bottom:15px;">Add New Card</button>
+</a>
 
-    {% for row in card %}
-    <tr>
-        <td>{{ row.card_id }}</td>
-        <td>{{ row.user_id }}</td>
-        <td>{{ row.card_number }}</td>
-        <td>{{ row.card_type }}</td>
-        <td>{{ row.expiry_date }}</td>
-        <td>
-        <form action="{{ url_for('delete_card', card_id=row.card_id) }}" method="POST">
-            <button type="submit">Delete</button>
-        </form>
-    </td>
-    </tr>
-    {% endfor %}
-
+<table class="card-table">
+    <thead>
+        <tr>
+            <th>Card ID</th>
+            <th>User ID</th>
+            <th>Card Number</th>
+            <th>Card Type</th>
+            <th>Expiry Date</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in card %}
+        <tr>
+            <td>{{ row.card_id }}</td>
+            <td>{{ row.user_id }}</td>
+            <td>{{ row.card_number }}</td>
+            <td>{{ row.card_type }}</td>
+            <td>{{ row.expiry_date }}</td>
+            <td>
+                <a href="{{ url_for('edit_card', card_id=row.card_id) }}">
+                    <button class="edit-btn">Edit</button>
+                </a>
+            </td>
+            <td>
+                <form action="{{ url_for('delete_card', card_id=row.card_id) }}" method="POST">
+                    <button type="submit" class="delete-btn">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
 
+<!-- external JS -->
+<script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
