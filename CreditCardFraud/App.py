@@ -7,7 +7,7 @@ app = Flask(__name__)
 dbconnection = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="rajesh",
+    password="revanth",
     database="creditcardfraud",
     port=3306
 )
@@ -174,10 +174,68 @@ def delete_card(card_id):
 @app.route('/user')
 def user():
     cursor.execute("SELECT * FROM user")
-    data = cursor.fetchall()
-    return render_template("user.html", records=data)
+    users = cursor.fetchall()
+    return render_template("user.html", users=users)
 
 
+@app.route('/user_add', methods=['GET','POST'])
+def user_add():
+
+    if request.method == 'POST':
+
+        cursor.execute("""
+        INSERT INTO user (user_id, name, email, phone)
+        VALUES (%s,%s,%s,%s)
+        """,(
+            request.form['user_id'],
+            request.form['name'],
+            request.form['email'],
+            request.form['phone']
+        ))
+
+        dbconnection.commit()
+
+        return redirect(url_for('user'))
+
+    return render_template("user_add.html")
+
+
+@app.route('/user_update', methods=['GET'])
+def user_update():
+    return render_template("user_update.html")
+
+
+@app.route('/user_update/<int:id>', methods=['POST'])
+def update_user(id):
+
+    cursor.execute("""
+    UPDATE user
+    SET name=%s,email=%s,phone=%s
+    WHERE user_id=%s
+    """,(
+        request.form['name'],
+        request.form['email'],
+        request.form['phone'],
+        id
+    ))
+
+    dbconnection.commit()
+
+    return redirect(url_for('user'))
+
+
+@app.route('/user_delete', methods=['GET'])
+def user_delete():
+    return render_template("user_delete.html")
+
+
+@app.route('/user_delete/<int:id>', methods=['POST'])
+def delete_user(id):
+
+    cursor.execute("DELETE FROM user WHERE user_id=%s",(id,))
+    dbconnection.commit()
+
+    return redirect(url_for('user'))
 
 @app.route('/merchant')
 def merchant():
