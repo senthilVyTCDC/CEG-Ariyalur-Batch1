@@ -1,26 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>User Table</title>
+    <title>User CRUD</title>
 </head>
 <body>
 
-<h2>User Details</h2>
+<h2>Add New User</h2>
+
+<form action="/add_user" method="POST">
+    Name: <input type="text" name="name" required>
+    Email: <input type="email" name="email" required>
+    Phone: <input type="text" name="phone" required>
+    <button type="submit">Add</button>
+</form>
+
+<hr>
+
+<h2>User List</h2>
 
 <table border="1">
     <tr>
-        <th>User ID</th>
+        <th>ID</th>
         <th>Name</th>
         <th>Email</th>
         <th>Phone</th>
+        <th>Action</th>
     </tr>
 
     {% for row in records %}
     <tr>
-        <td>{{ row[0] }}</td>
-        <td>{{ row[1] }}</td>
-        <td>{{ row[2] }}</td>
-        <td>{{ row[3] }}</td>
+        <form action="/update_user/{{ row.userid }}" method="POST">
+            <td>{{ row.userid }}</td>
+            <td><input type="text" name="name" value="{{ row.name }}"></td>
+            <td><input type="email" name="email" value="{{ row.email }}"></td>
+            <td><input type="text" name="phone" value="{{ row.phone }}"></td>
+            <td>
+                <button type="submit">Update</button>
+                <a href="/delete_user/{{ row.userid }}">Delete</a>
+            </td>
+        </form>
     </tr>
     {% endfor %}
 

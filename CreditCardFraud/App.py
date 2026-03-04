@@ -1,77 +1,70 @@
-from flask import Flask, render_template
-from flask import Flask, render_template, request, redirect, url_for  # ✅ correct import
+from flask import Flask, render_template, request, redirect, url_for
 import mysql.connector
 
 app = Flask(__name__)
 
-# Database Connection
-dbconnection = mysql.connector.connect(
-    host='localhost',
-    user='root',
-    password='1234',
-    port=3306,   # ✅ integer
-    database='CreditCardFraud'
+db = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="revanth",
+    database="CreditCardFraud"
 )
 
-cursor = dbconnection.cursor(dictionary=True)
+cursor = db.cursor(dictionary=True)
 
 @app.route('/')
-def HOME():
+def Home():
     return render_template('index.html')
 
-@app.route('/card')
-def Display_Card():
-    cursor.execute("SELECT * FROM card")
-    card = cursor.fetchall()
-    return render_template('card.html', card=card)
+@app.route('/transaction')
+def transaction():
+    cursor.execute("SELECT * FROM transaction_")
+    data = cursor.fetchall()
+    return render_template("transaction.html", records=data)
 
+@app.route('/user')
+def user():
+    cursor.execute("SELECT * FROM user")
+    data = cursor.fetchall()
+    return render_template("user.html", records=data)
 
-# CREATE 
-@app.route('/add', methods=['GET', 'POST'])
-def add_card():
-    if request.method == 'POST':
-        user_id = request.form['user_id']
-        card_number = request.form['card_number']
-        card_type = request.form['card_type']
-        expiry_date = request.form['expiry_date']
+# CREATE
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    user_id = request.form['user_id']
+    name = request.form['name']
+    email = request.form['email']
+    phone = request.form['phone']
 
-        sql = """
-        INSERT INTO card (user_id, card_number, card_type, expiry_date)
-        VALUES (%s, %s, %s, %s)
-        """
+    cursor.execute(
+        "INSERT INTO user (user_id,name, email, phone) VALUES (%s, %s, %s)",
+        (name, email, phone)
+    )
+    db.commit()
+    return redirect(url_for('user'))
 
-        values = (user_id, card_number, card_type, expiry_date)
+# DELETE
+@app.route('/delete_user/<int:id>')
+def delete_user(id):
+    cursor.execute("DELETE FROM user WHERE userid=%s", (id,))
+    db.commit()
+    return redirect(url_for('user'))
 
-        cursor.execute(sql, values)
-        dbconnection.commit()
+# UPDATE
+@app.route('/update_user/<int:id>', methods=['POST'])
+def update_user(id):
+    name = request.form['name']
+    email = request.form['email']
+    phone = request.form['phone']
 
-        return redirect(url_for('Display_Card'))
+    cursor.execute("""
+        UPDATE user
+        SET name=%s, email=%s, phone=%s
+        WHERE userid=%s
+    """, (name, email, phone, id))
 
-    return render_template('add_card.html')
+    db.commit()
+    return redirect(url_for('user'))
 
-# UPDATE 
-@app.route('/edit/<int:card_id>', methods=['GET', 'POST'])
-def edit_card(card_id):
-
-    if request.method == 'POST':
-        user_id = request.form['user_id']
-        card_number = request.form['card_number']
-        card_type = request.form['card_type']
-        expiry_date = request.form['expiry_date']
-        sql = """
-        UPDATE card
-        SET user_id=%s, card_number=%s, card_type=%s, expiry_date=%s
-        WHERE card_id=%s
-        """
-        values = (user_id, card_number, card_type, expiry_date, card_id)
-        cursor.execute(sql, values)
-        dbconnection.commit()
-        return redirect(url_for('Display_Card'))
-
-    # GET request 
-    cursor.execute("SELECT * FROM card WHERE card_id=%s", (card_id,))
-    card = cursor.fetchone()
-    return render_template('edit_card.html', card=card)
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
