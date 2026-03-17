@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, jsonify,request, redirect, url_for
 import mysql.connector
 import math
 
@@ -7,7 +7,7 @@ app = Flask(__name__)
 dbconnection = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="rajesh",
+    password="1234",
     database="creditcardfraud",
     port=3306
 )
@@ -105,71 +105,60 @@ def delete_transaction(id):
 
     return redirect(url_for('transaction'))
 
-@app.route('/card')
-def Display_Card():
+@app.route('/api/cards', methods=['GET'])
+def get_cards():
     cursor.execute("SELECT * FROM card")
-    card = cursor.fetchall()
-    return render_template('card.html', card=card)
+    cards = cursor.fetchall()
+    return jsonify(cards)
 
-@app.route('/card_add', methods=['GET', 'POST'])
-def add_card():
+@app.route('/api/cards', methods=['POST'])
+def add_card_api():
+    data = request.json
 
-    if request.method == 'POST':
+    values = (
+        data['user_id'],
+        data['card_number'],
+        data['card_type'],
+        data['expiry_date']
+    )
 
-        values = (
-            request.form['user_id'],
-            request.form['card_number'],
-            request.form['card_type'],
-            request.form['expiry_date']
-        )
+    cursor.execute(
+        "INSERT INTO card (user_id, card_number, card_type, expiry_date) VALUES (%s, %s, %s, %s)",
+        values
+    )
+    dbconnection.commit()
 
-        cursor.execute(
-            "INSERT INTO card (user_id, card_number, card_type, expiry_date) VALUES (%s, %s, %s, %s)",
-            values
-        )
+    return jsonify({"message": "Card added successfully"})
 
-        dbconnection.commit()
+@app.route('/api/cards/<int:card_id>', methods=['PUT'])
+def update_card(card_id):
+    data = request.json
 
-        return redirect(url_for('Display_Card'))
+    sql = """
+    UPDATE card
+    SET user_id=%s, card_number=%s, card_type=%s, expiry_date=%s
+    WHERE card_id=%s
+    """
 
-    return render_template('add_card.html')
+    values = (
+        data['user_id'],
+        data['card_number'],
+        data['card_type'],
+        data['expiry_date'],
+        card_id
+    )
 
-@app.route('/edit/<int:card_id>', methods=['GET', 'POST'])
-def edit_card(card_id):
+    cursor.execute(sql, values)
+    dbconnection.commit()
 
-    if request.method == 'POST':
+    return jsonify({"message": "Card updated successfully"})
 
-        sql = """
-        UPDATE card
-        SET user_id=%s, card_number=%s, card_type=%s, expiry_date=%s
-        WHERE card_id=%s
-        """
-
-        values = (
-            request.form['user_id'],
-            request.form['card_number'],
-            request.form['card_type'],
-            request.form['expiry_date'],
-            card_id
-        )
-
-        cursor.execute(sql, values)
-        dbconnection.commit()
-
-        return redirect(url_for('Display_Card'))
-
-    cursor.execute("SELECT * FROM card WHERE card_id=%s", (card_id,))
-    card = cursor.fetchone()
-
-    return render_template('edit_card.html', card=card)
-
-@app.route('/card_delete/<int:card_id>', methods=['POST'])
-def delete_card(card_id):
-
+@app.route('/api/cards/<int:card_id>', methods=['DELETE'])
+def delete_card_api(card_id):
     cursor.execute("DELETE FROM card WHERE card_id=%s", (card_id,))
     dbconnection.commit()
 
-    return redirect(url_for('Display_Card'))
+    return jsonify({"message": "Card deleted successfully"})
 
 @app.route('/user')
 def user():
