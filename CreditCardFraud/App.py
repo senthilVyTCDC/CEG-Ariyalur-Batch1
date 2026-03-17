@@ -1,4 +1,6 @@
+
 from flask import Flask, render_template, jsonify,request, redirect, url_for
+from flask import Flask, render_template,jsonify, request, redirect, url_for
 import mysql.connector
 import math
 
@@ -8,6 +10,7 @@ dbconnection = mysql.connector.connect(
     host="localhost",
     user="root",
     password="1234",
+    password="revanth",
     database="creditcardfraud",
     port=3306
 )
@@ -160,71 +163,65 @@ def delete_card_api(card_id):
 
     return jsonify({"message": "Card deleted successfully"})
 
-@app.route('/user')
+@app.route('/user', methods=['GET'])
 def user():
     cursor.execute("SELECT * FROM user")
     users = cursor.fetchall()
-    return render_template("user.html", users=users)
+    return jsonify(users)
 
 
-@app.route('/user_add', methods=['GET','POST'])
+@app.route('/user_add', methods=['POST'])
 def user_add():
-
-    if request.method == 'POST':
-
+    try:
         cursor.execute("""
         INSERT INTO user (user_id, name, email, phone)
         VALUES (%s,%s,%s,%s)
-        """,(
-            request.form['user_id'],
-            request.form['name'],
-            request.form['email'],
-            request.form['phone']
+        """, (
+            request.json['user_id'],
+            request.json['name'],
+            request.json['email'],
+            request.json['phone']
         ))
 
         dbconnection.commit()
 
-        return redirect(url_for('user'))
+        return jsonify({"message": "User added successfully"}), 201
 
-    return render_template("user_add.html")
-
-
-@app.route('/user_update', methods=['GET'])
-def user_update():
-    return render_template("user_update.html")
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
-@app.route('/user_update/<int:id>', methods=['POST'])
+@app.route('/user_update/<int:id>', methods=['PUT'])
 def update_user(id):
+    try:
+        cursor.execute("""
+        UPDATE user
+        SET name=%s,email=%s,phone=%s
+        WHERE user_id=%s
+        """, (
+            request.json['name'],
+            request.json['email'],
+            request.json['phone'],
+            id
+        ))
 
-    cursor.execute("""
-    UPDATE user
-    SET name=%s,email=%s,phone=%s
-    WHERE user_id=%s
-    """,(
-        request.form['name'],
-        request.form['email'],
-        request.form['phone'],
-        id
-    ))
+        dbconnection.commit()
 
-    dbconnection.commit()
+        return jsonify({"message": "User updated successfully"})
 
-    return redirect(url_for('user'))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-
-@app.route('/user_delete', methods=['GET'])
-def user_delete():
-    return render_template("user_delete.html")
-
-
-@app.route('/user_delete/<int:id>', methods=['POST'])
+@app.route('/user_delete/<int:id>', methods=['DELETE'])
 def delete_user(id):
+    try:
+        cursor.execute("DELETE FROM user WHERE user_id=%s", (id,))
+        dbconnection.commit()
 
-    cursor.execute("DELETE FROM user WHERE user_id=%s",(id,))
-    dbconnection.commit()
+        return jsonify({"message": "User deleted successfully"})
 
-    return redirect(url_for('user'))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/merchant')
 def merchant():
