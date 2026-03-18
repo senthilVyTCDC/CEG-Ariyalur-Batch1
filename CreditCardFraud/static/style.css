@@ -2,8 +2,7 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: url("bg.jpg") no-repeat center center fixed;
-    background-size: cover;
+    background-color: #f4f4f4ad;   /* light grey */
 }
 
 /* Heading */
