@@ -8,12 +8,7 @@ app = Flask(__name__)
 dbconnection = mysql.connector.connect(
     host="localhost",
     user="root",
-<<<<<<< HEAD
     password="root@123",
-=======
-    password="1234",
-    password="revanth",
->>>>>>> 3593b2a2000790ea6479977421560f1837a14abf
     database="creditcardfraud",
     port=3306
 )
