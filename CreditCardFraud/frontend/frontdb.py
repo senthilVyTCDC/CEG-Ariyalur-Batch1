@@ -19,12 +19,19 @@ def open_module(name):
     st.session_state.page = "module"
     st.session_state.module = name
 
+def show_message(res):
+    try:
+        data = res.json()
+        st.success(data.get("message", "Operation completed"))
+    except:
+        st.error("Something went wrong")
+
 if st.session_state.page == "home":
 
     st.markdown("""
     <div style='text-align:center; margin-bottom:10px'>
-        <h1 style='color:#1f4e79;'>💳 Credit Card Detalis</h1>
-        <p style='color:gray;'>Secure • Monitor • Detect</p>
+        <h1 style='color:#1f4e79;'>💳 Credit Card Fraud Detection System</h1>
+        <p style='color:gray;'>Secure • Monitor • Detect Fraud</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -49,7 +56,7 @@ if st.session_state.page == "home":
 elif st.session_state.page == "module":
 
     module = st.session_state.module
-    st.title(f"📦 {module.upper()} DETAILS")
+    st.title(f"📦 {module.upper()} MODULE")
 
     st.button("⬅ Back to Home", on_click=go_home)
 
@@ -72,7 +79,7 @@ elif st.session_state.page == "module":
                     "email": email,
                     "phone": phone
                 })
-                st.success(res.json())
+                show_message(res)
 
         elif option == "Read":
             if st.button("Load Users"):
@@ -91,14 +98,14 @@ elif st.session_state.page == "module":
                     "email": email,
                     "phone": phone
                 })
-                st.success(res.json())
+                show_message(res)
 
         elif option == "Delete":
             user_id = st.number_input("User ID")
 
             if st.button("Delete"):
                 res = requests.delete(f"{BASE_URL}/user_delete/{int(user_id)}")
-                st.success(res.json())
+                show_message(res)
 
     elif module == "card":
 
@@ -115,7 +122,7 @@ elif st.session_state.page == "module":
                     "card_type": card_type,
                     "expiry_date": expiry
                 })
-                st.success(res.json())
+                show_message(res)
 
         elif option == "Read":
             if st.button("Load Cards"):
@@ -136,14 +143,14 @@ elif st.session_state.page == "module":
                     "card_type": card_type,
                     "expiry_date": expiry
                 })
-                st.success(res.json())
+                show_message(res)
 
         elif option == "Delete":
             card_id = st.number_input("Card ID")
 
             if st.button("Delete"):
                 res = requests.delete(f"{BASE_URL}/api/cards/{int(card_id)}")
-                st.success(res.json())
+                show_message(res)
 
     elif module == "transaction":
 
@@ -162,7 +169,7 @@ elif st.session_state.page == "module":
                     "amount": amount,
                     "status": status
                 })
-                st.success(res.json())
+                show_message(res)
 
         elif option == "Read":
             if st.button("Load Transactions"):
@@ -179,14 +186,14 @@ elif st.session_state.page == "module":
                     "amount": amount,
                     "status": status
                 })
-                st.success(res.json())
+                show_message(res)
 
         elif option == "Delete":
             txn_id = st.number_input("Transaction ID")
 
             if st.button("Delete"):
                 res = requests.delete(f"{BASE_URL}/transaction_delete/{int(txn_id)}")
-                st.success(res.json())
+                show_message(res)
 
     elif module == "merchant":
         st.warning("⚠️ Merchant module not implemented in Flask yet")
