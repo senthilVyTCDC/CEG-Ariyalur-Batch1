@@ -1,10 +1,13 @@
 import streamlit as st
 import requests
+import pandas as pd
+import matplotlib.pyplot as plt
 
 BASE_URL = "http://127.0.0.1:5000"
 
 st.set_page_config(page_title="Fraud Detection System", layout="wide")
 
+# ---------- SESSION ----------
 if "page" not in st.session_state:
     st.session_state.page = "home"
 
@@ -26,10 +29,11 @@ def show_message(res):
     except:
         st.error("Something went wrong")
 
+# ---------- HOME ----------
 if st.session_state.page == "home":
 
     st.markdown("""
-    <div style='text-align:center; margin-bottom:10px'>
+    <div style='text-align:center;'>
         <h1 style='color:#1f4e79;'>💳 Credit Card Fraud Detection System</h1>
         <p style='color:gray;'>Secure • Monitor • Detect Fraud</p>
     </div>
@@ -40,19 +44,20 @@ if st.session_state.page == "home":
     col1, col2 = st.columns(2)
 
     with col1:
-        if st.button("👤 User Management", width='stretch'):
+        if st.button("👤 User Management", use_container_width=True):
             open_module("user")
 
-        if st.button("💳 Card Management", width='stretch'):
+        if st.button("💳 Card Management", use_container_width=True):
             open_module("card")
 
     with col2:
-        if st.button("💰 Transaction Monitoring", width='stretch'):
+        if st.button("💰 Transaction Monitoring", use_container_width=True):
             open_module("transaction")
 
-        if st.button("🏪 Merchant Analysis", width='stretch'):
+        if st.button("🏪 Merchant Analysis", use_container_width=True):
             open_module("merchant")
 
+# ---------- MODULE ----------
 elif st.session_state.page == "module":
 
     module = st.session_state.module
@@ -61,9 +66,9 @@ elif st.session_state.page == "module":
     st.button("⬅ Back to Home", on_click=go_home)
 
     option = st.radio("Choose Operation", ["Create", "Read", "Update", "Delete"], horizontal=True)
-
     st.divider()
 
+    # ================= USER =================
     if module == "user":
 
         if option == "Create":
@@ -84,7 +89,13 @@ elif st.session_state.page == "module":
         elif option == "Read":
             if st.button("Load Users"):
                 res = requests.get(f"{BASE_URL}/user")
-                st.dataframe(res.json(), width='stretch')
+                df = pd.DataFrame(res.json())
+
+                st.dataframe(df, use_container_width=True)
+
+                if not df.empty:
+                    st.subheader("📊 User Distribution")
+                    st.bar_chart(df['user_id'])
 
         elif option == "Update":
             user_id = st.number_input("User ID")
@@ -107,6 +118,7 @@ elif st.session_state.page == "module":
                 res = requests.delete(f"{BASE_URL}/user_delete/{int(user_id)}")
                 show_message(res)
 
+    # ================= CARD =================
     elif module == "card":
 
         if option == "Create":
@@ -127,7 +139,13 @@ elif st.session_state.page == "module":
         elif option == "Read":
             if st.button("Load Cards"):
                 res = requests.get(f"{BASE_URL}/api/cards")
-                st.dataframe(res.json(), width='stretch')
+                df = pd.DataFrame(res.json())
+
+                st.dataframe(df, use_container_width=True)
+
+                if not df.empty and 'card_type' in df.columns:
+                    st.subheader("📊 Card Type Distribution")
+                    st.bar_chart(df['card_type'].value_counts())
 
         elif option == "Update":
             card_id = st.number_input("Card ID")
@@ -152,6 +170,7 @@ elif st.session_state.page == "module":
                 res = requests.delete(f"{BASE_URL}/api/cards/{int(card_id)}")
                 show_message(res)
 
+    # ================= TRANSACTION =================
     elif module == "transaction":
 
         if option == "Create":
@@ -166,7 +185,7 @@ elif st.session_state.page == "module":
                     "user_id": int(user_id),
                     "card_id": int(card_id),
                     "merchant_id": int(merchant_id),
-                    "amount": amount,
+                    "amount": float(amount),
                     "status": status
                 })
                 show_message(res)
@@ -174,7 +193,27 @@ elif st.session_state.page == "module":
         elif option == "Read":
             if st.button("Load Transactions"):
                 res = requests.get(f"{BASE_URL}/transaction")
-                st.dataframe(res.json(), width='stretch')
+                df = pd.DataFrame(res.json())
+
+                st.dataframe(df, use_container_width=True)
+
+                if not df.empty:
+                    df['amount'] = pd.to_numeric(df['amount'], errors='coerce')
+
+                    # KPI
+                    st.metric("Total Transactions", len(df))
+                    st.metric("Total Amount", int(df['amount'].sum()))
+
+                    # Histogram
+                    st.subheader("📊 Amount Distribution")
+                    fig, ax = plt.subplots()
+                    ax.hist(df['amount'])
+                    st.pyplot(fig)
+
+                    # Status Chart
+                    if 'status' in df.columns:
+                        st.subheader("📊 Status Distribution")
+                        st.bar_chart(df['status'].value_counts())
 
         elif option == "Update":
             txn_id = st.number_input("Transaction ID")
@@ -183,7 +222,7 @@ elif st.session_state.page == "module":
 
             if st.button("Update"):
                 res = requests.put(f"{BASE_URL}/transaction_update/{int(txn_id)}", json={
-                    "amount": amount,
+                    "amount": float(amount),
                     "status": status
                 })
                 show_message(res)
@@ -195,5 +234,6 @@ elif st.session_state.page == "module":
                 res = requests.delete(f"{BASE_URL}/transaction_delete/{int(txn_id)}")
                 show_message(res)
 
+    # ================= MERCHANT =================
     elif module == "merchant":
         st.warning("⚠️ Merchant module not implemented in Flask yet")
