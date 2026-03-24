@@ -1,13 +1,11 @@
 import streamlit as st
 import requests
 import pandas as pd
-import matplotlib.pyplot as plt
 
 BASE_URL = "http://127.0.0.1:5000"
 
 st.set_page_config(page_title="Fraud Detection System", layout="wide")
 
-# ---------- SESSION ----------
 if "page" not in st.session_state:
     st.session_state.page = "home"
 
@@ -29,7 +27,7 @@ def show_message(res):
     except:
         st.error("Something went wrong")
 
-# ---------- HOME ----------
+# ---------------- HOME ----------------
 if st.session_state.page == "home":
 
     st.markdown("""
@@ -44,20 +42,20 @@ if st.session_state.page == "home":
     col1, col2 = st.columns(2)
 
     with col1:
-        if st.button("👤 User Management", use_container_width=True):
+        if st.button("👤 User Management", width='stretch'):
             open_module("user")
 
-        if st.button("💳 Card Management", use_container_width=True):
+        if st.button("💳 Card Management", width='stretch'):
             open_module("card")
 
     with col2:
-        if st.button("💰 Transaction Monitoring", use_container_width=True):
+        if st.button("💰 Transaction Monitoring", width='stretch'):
             open_module("transaction")
 
-        if st.button("🏪 Merchant Analysis", use_container_width=True):
+        if st.button("🏪 Merchant Analysis", width='stretch'):
             open_module("merchant")
 
-# ---------- MODULE ----------
+# ---------------- MODULE ----------------
 elif st.session_state.page == "module":
 
     module = st.session_state.module
@@ -91,11 +89,14 @@ elif st.session_state.page == "module":
                 res = requests.get(f"{BASE_URL}/user")
                 df = pd.DataFrame(res.json())
 
-                st.dataframe(df, use_container_width=True)
+                st.dataframe(df, width='stretch')
 
                 if not df.empty:
-                    st.subheader("📊 User Distribution")
-                    st.bar_chart(df['user_id'])
+                    st.subheader("📊 Users Overview")
+                    st.metric("Total Users", len(df))
+
+                    if "user_id" in df.columns:
+                        st.bar_chart(df["user_id"])
 
         elif option == "Update":
             user_id = st.number_input("User ID")
@@ -141,11 +142,11 @@ elif st.session_state.page == "module":
                 res = requests.get(f"{BASE_URL}/api/cards")
                 df = pd.DataFrame(res.json())
 
-                st.dataframe(df, use_container_width=True)
+                st.dataframe(df, width='stretch')
 
-                if not df.empty and 'card_type' in df.columns:
+                if not df.empty and "card_type" in df.columns:
                     st.subheader("📊 Card Type Distribution")
-                    st.bar_chart(df['card_type'].value_counts())
+                    st.bar_chart(df["card_type"].value_counts())
 
         elif option == "Update":
             card_id = st.number_input("Card ID")
@@ -195,22 +196,22 @@ elif st.session_state.page == "module":
                 res = requests.get(f"{BASE_URL}/transaction")
                 df = pd.DataFrame(res.json())
 
-                st.dataframe(df, use_container_width=True)
+                st.dataframe(df, width='stretch')
 
                 if not df.empty:
                     df['amount'] = pd.to_numeric(df['amount'], errors='coerce')
 
-                    # KPI
                     st.metric("Total Transactions", len(df))
                     st.metric("Total Amount", int(df['amount'].sum()))
 
-                    # Histogram
-                    st.subheader("📊 Amount Distribution")
-                    fig, ax = plt.subplots()
-                    ax.hist(df['amount'])
-                    st.pyplot(fig)
+                    if 'transaction_time' in df.columns:
+                        df['transaction_time'] = pd.to_datetime(df['transaction_time'])
+                        df = df.sort_values('transaction_time')
 
-                    # Status Chart
+                        st.subheader("💰 Amount Spent Over Time")
+                        df.set_index('transaction_time', inplace=True)
+                        st.line_chart(df['amount'])
+
                     if 'status' in df.columns:
                         st.subheader("📊 Status Distribution")
                         st.bar_chart(df['status'].value_counts())
