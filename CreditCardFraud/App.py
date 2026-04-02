@@ -1,17 +1,17 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, request, jsonify
 import mysql.connector
 
 app = Flask(__name__)
 
-dbconnection = mysql.connector.connect(
+# ---------- DB CONNECTION ----------
+db = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="rajesh",
-    database="creditcardfraud",
-    port=3306
+    password="1234",
+    database="creditcardfraud"
 )
 
-cursor = dbconnection.cursor(dictionary=True)
+cursor = db.cursor(dictionary=True)
 
 
 @app.route('/')
@@ -19,115 +19,143 @@ def home():
     return "API Running 🚀"
 
 
-
-@app.route('/transaction', methods=['GET'])
-def transaction():
+# =========================================================
+# 🔹 TRANSACTION MODULE (UPDATED)
+# =========================================================
+@app.route('/transactions', methods=['GET'])
+def get_transactions():
     cursor.execute("SELECT * FROM transaction_")
     return jsonify(cursor.fetchall())
 
 
-@app.route('/transaction_add', methods=['POST'])
-def transaction_add():
+@app.route('/transactions', methods=['POST'])
+def add_transaction():
     data = request.json
 
     cursor.execute("""
         INSERT INTO transaction_
-        (user_id, card_id, merchant_id, amount, transaction_time, status)
-        VALUES (%s,%s,%s,%s,NOW(),%s)
+        (transaction_id, user_id, card_id, merchant_id, amount,
+         transaction_datetime, location, category, transaction_type)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
     """, (
+        data['transaction_id'],
         data['user_id'],
         data['card_id'],
         data['merchant_id'],
         data['amount'],
-        data['status']
+        data['transaction_datetime'],
+        data['location'],
+        data['category'],
+        data['transaction_type']
     ))
 
-    dbconnection.commit()
+    db.commit()
     return jsonify({"message": "Transaction added"})
 
 
-@app.route('/transaction_update/<int:id>', methods=['PUT'])
+@app.route('/transactions/<int:id>', methods=['PUT'])
 def update_transaction(id):
     data = request.json
 
     cursor.execute("""
         UPDATE transaction_
-        SET amount=%s, status=%s
+        SET amount=%s,
+            location=%s,
+            category=%s,
+            transaction_type=%s
         WHERE transaction_id=%s
-    """, (data['amount'], data['status'], id))
+    """, (
+        data['amount'],
+        data['location'],
+        data['category'],
+        data['transaction_type'],
+        id
+    ))
 
-    dbconnection.commit()
+    db.commit()
     return jsonify({"message": "Transaction updated"})
 
 
-@app.route('/transaction_delete/<int:id>', methods=['DELETE'])
+@app.route('/transactions/<int:id>', methods=['DELETE'])
 def delete_transaction(id):
     cursor.execute("DELETE FROM transaction_ WHERE transaction_id=%s", (id,))
-    dbconnection.commit()
+    db.commit()
     return jsonify({"message": "Transaction deleted"})
 
 
-
-@app.route('/api/cards', methods=['GET'])
+# =========================================================
+# 🔹 CARD MODULE (UPDATED)
+# =========================================================
+@app.route('/cards', methods=['GET'])
 def get_cards():
     cursor.execute("SELECT * FROM card")
     return jsonify(cursor.fetchall())
 
 
-@app.route('/api/cards', methods=['POST'])
+@app.route('/cards', methods=['POST'])
 def add_card():
     data = request.json
 
     cursor.execute("""
-        INSERT INTO card (user_id, card_number, card_type, expiry_date)
-        VALUES (%s,%s,%s,%s)
+        INSERT INTO card
+        (card_id, user_id, card_number, expiry_date, card_limit, last_used)
+        VALUES (%s,%s,%s,%s,%s,%s)
     """, (
+        data['card_id'],
         data['user_id'],
         data['card_number'],
-        data['card_type'],
-        data['expiry_date']
+        data['expiry_date'],
+        data['card_limit'],
+        data['last_used']
     ))
 
-    dbconnection.commit()
+    db.commit()
     return jsonify({"message": "Card added"})
 
 
-@app.route('/api/cards/<int:card_id>', methods=['PUT'])
-def update_card(card_id):
+@app.route('/cards/<int:id>', methods=['PUT'])
+def update_card(id):
     data = request.json
 
     cursor.execute("""
         UPDATE card
-        SET user_id=%s, card_number=%s, card_type=%s, expiry_date=%s
+        SET user_id=%s,
+            card_number=%s,
+            expiry_date=%s,
+            card_limit=%s,
+            last_used=%s
         WHERE card_id=%s
     """, (
         data['user_id'],
         data['card_number'],
-        data['card_type'],
         data['expiry_date'],
-        card_id
+        data['card_limit'],
+        data['last_used'],
+        id
     ))
 
-    dbconnection.commit()
+    db.commit()
     return jsonify({"message": "Card updated"})
 
 
-@app.route('/api/cards/<int:card_id>', methods=['DELETE'])
-def delete_card(card_id):
-    cursor.execute("DELETE FROM card WHERE card_id=%s", (card_id,))
-    dbconnection.commit()
+@app.route('/cards/<int:id>', methods=['DELETE'])
+def delete_card(id):
+    cursor.execute("DELETE FROM card WHERE card_id=%s", (id,))
+    db.commit()
     return jsonify({"message": "Card deleted"})
 
 
-
-@app.route('/user', methods=['GET'])
-def user():
+# =========================================================
+# 🔹 USER MODULE (UNCHANGED)
+# =========================================================
+@app.route('/users', methods=['GET'])
+def get_users():
     cursor.execute("SELECT * FROM user")
     return jsonify(cursor.fetchall())
 
 
-@app.route('/user_add', methods=['POST'])
-def user_add():
+@app.route('/users', methods=['POST'])
+def add_user():
     data = request.json
 
     cursor.execute("""
@@ -140,17 +168,17 @@ def user_add():
         data['phone']
     ))
 
-    dbconnection.commit()
+    db.commit()
     return jsonify({"message": "User added"})
 
 
-@app.route('/user_update/<int:id>', methods=['PUT'])
+@app.route('/users/<int:id>', methods=['PUT'])
 def update_user(id):
     data = request.json
 
     cursor.execute("""
         UPDATE user
-        SET name=%s,email=%s,phone=%s
+        SET name=%s, email=%s, phone=%s
         WHERE user_id=%s
     """, (
         data['name'],
@@ -159,16 +187,35 @@ def update_user(id):
         id
     ))
 
-    dbconnection.commit()
+    db.commit()
     return jsonify({"message": "User updated"})
 
 
-@app.route('/user_delete/<int:id>', methods=['DELETE'])
+@app.route('/users/<int:id>', methods=['DELETE'])
 def delete_user(id):
     cursor.execute("DELETE FROM user WHERE user_id=%s", (id,))
-    dbconnection.commit()
+    db.commit()
     return jsonify({"message": "User deleted"})
 
 
+# =========================================================
+# 🔹 FRAUD PREDICTION
+# =========================================================
+@app.route('/fraud_prediction', methods=['GET'])
+def fraud_prediction():
+    cursor.execute("SELECT * FROM fraud_prediction")
+    return jsonify(cursor.fetchall())
+
+
+# =========================================================
+# 🔹 FRAUD ALERT
+# =========================================================
+@app.route('/fraud_alert', methods=['GET'])
+def fraud_alert():
+    cursor.execute("SELECT * FROM fraud_alert")
+    return jsonify(cursor.fetchall())
+
+
+# =========================================================
 if __name__ == "__main__":
     app.run(debug=True)

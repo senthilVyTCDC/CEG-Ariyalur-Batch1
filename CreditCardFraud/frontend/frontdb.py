@@ -22,48 +22,39 @@ def open_module(name):
 
 def show_message(res):
     try:
-        data = res.json()
-        st.success(data.get("message", "Operation completed"))
+        st.success(res.json().get("message", "Success"))
     except:
-        st.error("Something went wrong")
+        st.error("Error occurred")
 
 # ---------------- HOME ----------------
 if st.session_state.page == "home":
 
-    st.markdown("""
-    <div style='text-align:center;'>
-        <h1 style='color:#1f4e79;'>💳 Credit Card Fraud Detection System</h1>
-        <p style='color:gray;'>Secure • Monitor • Detect Fraud</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("### Select Module")
+    st.title("💳 Credit Card Fraud Detection System")
+    st.write("Secure • Monitor • Detect Fraud")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        if st.button("👤 User Management", width='stretch'):
+        if st.button("👤 User"):
             open_module("user")
-
-        if st.button("💳 Card Management", width='stretch'):
+        if st.button("💳 Card"):
             open_module("card")
 
     with col2:
-        if st.button("💰 Transaction Monitoring", width='stretch'):
+        if st.button("💰 Transaction"):
             open_module("transaction")
-
-        if st.button("🏪 Merchant Analysis", width='stretch'):
-            open_module("merchant")
+        if st.button("🚨 Fraud Monitor"):
+            open_module("fraud")
 
 # ---------------- MODULE ----------------
 elif st.session_state.page == "module":
 
     module = st.session_state.module
-    st.title(f"📦 {module.upper()} MODULE")
+    st.title(f"{module.upper()} MODULE")
 
-    st.button("⬅ Back to Home", on_click=go_home)
+    st.button("⬅ Back", on_click=go_home)
 
-    option = st.radio("Choose Operation", ["Create", "Read", "Update", "Delete"], horizontal=True)
+    option = st.radio("Operation", ["Create", "Read", "Update", "Delete"], horizontal=True)
     st.divider()
 
     # ================= USER =================
@@ -76,7 +67,7 @@ elif st.session_state.page == "module":
             phone = st.text_input("Phone")
 
             if st.button("Submit"):
-                res = requests.post(f"{BASE_URL}/user_add", json={
+                res = requests.post(f"{BASE_URL}/users", json={
                     "user_id": int(user_id),
                     "name": name,
                     "email": email,
@@ -85,27 +76,21 @@ elif st.session_state.page == "module":
                 show_message(res)
 
         elif option == "Read":
-            if st.button("Load Users"):
-                res = requests.get(f"{BASE_URL}/user")
-                df = pd.DataFrame(res.json())
-
-                st.dataframe(df, width='stretch')
+            if st.button("Load"):
+                df = pd.DataFrame(requests.get(f"{BASE_URL}/users").json())
+                st.dataframe(df, use_container_width=True)
 
                 if not df.empty:
-                    st.subheader("📊 Users Overview")
                     st.metric("Total Users", len(df))
-
-                    if "user_id" in df.columns:
-                        st.bar_chart(df["user_id"])
 
         elif option == "Update":
             user_id = st.number_input("User ID")
-            name = st.text_input("New Name")
-            email = st.text_input("New Email")
-            phone = st.text_input("New Phone")
+            name = st.text_input("Name")
+            email = st.text_input("Email")
+            phone = st.text_input("Phone")
 
             if st.button("Update"):
-                res = requests.put(f"{BASE_URL}/user_update/{int(user_id)}", json={
+                res = requests.put(f"{BASE_URL}/users/{int(user_id)}", json={
                     "name": name,
                     "email": email,
                     "phone": phone
@@ -116,51 +101,55 @@ elif st.session_state.page == "module":
             user_id = st.number_input("User ID")
 
             if st.button("Delete"):
-                res = requests.delete(f"{BASE_URL}/user_delete/{int(user_id)}")
+                res = requests.delete(f"{BASE_URL}/users/{int(user_id)}")
                 show_message(res)
 
     # ================= CARD =================
     elif module == "card":
 
         if option == "Create":
+            card_id = st.number_input("Card ID")
             user_id = st.number_input("User ID")
             card_number = st.text_input("Card Number")
-            card_type = st.text_input("Card Type")
             expiry = st.text_input("Expiry Date")
+            limit = st.number_input("Card Limit")
+            last_used = st.text_input("Last Used (YYYY-MM-DD HH:MM:SS)")
 
             if st.button("Submit"):
-                res = requests.post(f"{BASE_URL}/api/cards", json={
+                res = requests.post(f"{BASE_URL}/cards", json={
+                    "card_id": int(card_id),
                     "user_id": int(user_id),
                     "card_number": card_number,
-                    "card_type": card_type,
-                    "expiry_date": expiry
+                    "expiry_date": expiry,
+                    "card_limit": float(limit),
+                    "last_used": last_used
                 })
                 show_message(res)
 
         elif option == "Read":
-            if st.button("Load Cards"):
-                res = requests.get(f"{BASE_URL}/api/cards")
-                df = pd.DataFrame(res.json())
+            if st.button("Load"):
+                df = pd.DataFrame(requests.get(f"{BASE_URL}/cards").json())
+                st.dataframe(df, use_container_width=True)
 
-                st.dataframe(df, width='stretch')
-
-                if not df.empty and "card_type" in df.columns:
-                    st.subheader("📊 Card Type Distribution")
-                    st.bar_chart(df["card_type"].value_counts())
+                if not df.empty:
+                    st.subheader("📊 Card Limit Distribution")
+                    st.bar_chart(df["card_limit"])
 
         elif option == "Update":
             card_id = st.number_input("Card ID")
             user_id = st.number_input("User ID")
             card_number = st.text_input("Card Number")
-            card_type = st.text_input("Card Type")
             expiry = st.text_input("Expiry Date")
+            limit = st.number_input("Card Limit")
+            last_used = st.text_input("Last Used")
 
             if st.button("Update"):
-                res = requests.put(f"{BASE_URL}/api/cards/{int(card_id)}", json={
+                res = requests.put(f"{BASE_URL}/cards/{int(card_id)}", json={
                     "user_id": int(user_id),
                     "card_number": card_number,
-                    "card_type": card_type,
-                    "expiry_date": expiry
+                    "expiry_date": expiry,
+                    "card_limit": float(limit),
+                    "last_used": last_used
                 })
                 show_message(res)
 
@@ -168,63 +157,69 @@ elif st.session_state.page == "module":
             card_id = st.number_input("Card ID")
 
             if st.button("Delete"):
-                res = requests.delete(f"{BASE_URL}/api/cards/{int(card_id)}")
+                res = requests.delete(f"{BASE_URL}/cards/{int(card_id)}")
                 show_message(res)
 
     # ================= TRANSACTION =================
     elif module == "transaction":
 
         if option == "Create":
+            txn_id = st.number_input("Transaction ID")
             user_id = st.number_input("User ID")
             card_id = st.number_input("Card ID")
             merchant_id = st.number_input("Merchant ID")
             amount = st.number_input("Amount")
-            status = st.text_input("Status")
+            datetime = st.text_input("Datetime (YYYY-MM-DD HH:MM:SS)")
+            location = st.text_input("Location")
+            category = st.text_input("Category")
+            txn_type = st.text_input("Type (online/offline)")
 
             if st.button("Submit"):
-                res = requests.post(f"{BASE_URL}/transaction_add", json={
+                res = requests.post(f"{BASE_URL}/transactions", json={
+                    "transaction_id": int(txn_id),
                     "user_id": int(user_id),
                     "card_id": int(card_id),
                     "merchant_id": int(merchant_id),
                     "amount": float(amount),
-                    "status": status
+                    "transaction_datetime": datetime,
+                    "location": location,
+                    "category": category,
+                    "transaction_type": txn_type
                 })
                 show_message(res)
 
         elif option == "Read":
-            if st.button("Load Transactions"):
-                res = requests.get(f"{BASE_URL}/transaction")
-                df = pd.DataFrame(res.json())
-
-                st.dataframe(df, width='stretch')
+            if st.button("Load"):
+                df = pd.DataFrame(requests.get(f"{BASE_URL}/transactions").json())
+                st.dataframe(df, use_container_width=True)
 
                 if not df.empty:
-                    df['amount'] = pd.to_numeric(df['amount'], errors='coerce')
+                    df["amount"] = pd.to_numeric(df["amount"], errors='coerce')
 
                     st.metric("Total Transactions", len(df))
-                    st.metric("Total Amount", int(df['amount'].sum()))
+                    st.metric("Total Amount", int(df["amount"].sum()))
 
-                    if 'transaction_time' in df.columns:
-                        df['transaction_time'] = pd.to_datetime(df['transaction_time'])
-                        df = df.sort_values('transaction_time')
+                    if "transaction_datetime" in df.columns:
+                        df["transaction_datetime"] = pd.to_datetime(df["transaction_datetime"])
+                        df = df.sort_values("transaction_datetime")
+                        st.line_chart(df.set_index("transaction_datetime")["amount"])
 
-                        st.subheader("💰 Amount Spent Over Time")
-                        df.set_index('transaction_time', inplace=True)
-                        st.line_chart(df['amount'])
-
-                    if 'status' in df.columns:
-                        st.subheader("📊 Status Distribution")
-                        st.bar_chart(df['status'].value_counts())
+                    if "category" in df.columns:
+                        st.bar_chart(df["category"].value_counts())
 
         elif option == "Update":
             txn_id = st.number_input("Transaction ID")
             amount = st.number_input("Amount")
-            status = st.text_input("Status")
+            location = st.text_input("Location")
+            category = st.text_input("Category")
+            txn_type = st.text_input("Type")
 
             if st.button("Update"):
-                res = requests.put(f"{BASE_URL}/transaction_update/{int(txn_id)}", json={
+                res = requests.put(f"{BASE_URL}/transactions/{int(txn_id)}", json={
                     "amount": float(amount),
-                    "status": status
+                    "location": location,
+                    "category": category,
+                    "transaction_type": txn_type
                 })
                 show_message(res)
 
@@ -232,9 +227,18 @@ elif st.session_state.page == "module":
             txn_id = st.number_input("Transaction ID")
 
             if st.button("Delete"):
-                res = requests.delete(f"{BASE_URL}/transaction_delete/{int(txn_id)}")
+                res = requests.delete(f"{BASE_URL}/transactions/{int(txn_id)}")
                 show_message(res)
 
-    # ================= MERCHANT =================
-    elif module == "merchant":
-        st.warning("⚠️ Merchant module not implemented in Flask yet")
+    # ================= FRAUD =================
+    elif module == "fraud":
+
+        st.subheader("🚨 Fraud Detection")
+
+        if st.button("Load Predictions"):
+            df = pd.DataFrame(requests.get(f"{BASE_URL}/fraud_prediction").json())
+            st.dataframe(df, use_container_width=True)
+
+        if st.button("Load Alerts"):
+            df = pd.DataFrame(requests.get(f"{BASE_URL}/fraud_alert").json())
+            st.dataframe(df, use_container_width=True)
