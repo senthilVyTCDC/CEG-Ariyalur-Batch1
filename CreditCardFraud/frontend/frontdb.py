@@ -22,12 +22,11 @@ def open_module(name):
 
 def show_message(res):
     try:
-        data = res.json()
-        st.success(data.get("message", "Operation completed"))
+        st.success(res.json().get("message"))
     except:
-        st.error("Something went wrong")
+        st.error("Error")
 
-# ---------------- HOME ----------------
+# ---------------- HOME (UNCHANGED) ----------------
 if st.session_state.page == "home":
 
     st.markdown("""
@@ -56,7 +55,7 @@ if st.session_state.page == "home":
             open_module("merchant")
 
 # ---------------- MODULE ----------------
-elif st.session_state.page == "module":
+else:
 
     module = st.session_state.module
     st.title(f"📦 {module.upper()} MODULE")
@@ -64,9 +63,8 @@ elif st.session_state.page == "module":
     st.button("⬅ Back to Home", on_click=go_home)
 
     option = st.radio("Choose Operation", ["Create", "Read", "Update", "Delete"], horizontal=True)
-    st.divider()
 
-    # ================= USER =================
+    # USER
     if module == "user":
 
         if option == "Create":
@@ -74,167 +72,50 @@ elif st.session_state.page == "module":
             name = st.text_input("Name")
             email = st.text_input("Email")
             phone = st.text_input("Phone")
+            age = st.number_input("Age")
+            gender = st.selectbox("Gender", ["Male", "Female"])
+            bank = st.text_input("Bank Name")
+            acc = st.selectbox("Account Type", ["Savings", "Business", "Employee"])
 
             if st.button("Submit"):
-                res = requests.post(f"{BASE_URL}/user_add", json={
+                show_message(requests.post(f"{BASE_URL}/user_add", json={
                     "user_id": int(user_id),
                     "name": name,
                     "email": email,
-                    "phone": phone
-                })
-                show_message(res)
+                    "phone": phone,
+                    "age": int(age),
+                    "gender": gender,
+                    "bank_name": bank,
+                    "account_type": acc
+                }))
 
         elif option == "Read":
             if st.button("Load Users"):
-                res = requests.get(f"{BASE_URL}/user")
-                df = pd.DataFrame(res.json())
+                df = pd.DataFrame(requests.get(f"{BASE_URL}/user").json())
+                st.dataframe(df)
 
-                st.dataframe(df, width='stretch')
-
-                if not df.empty:
-                    st.subheader("📊 Users Overview")
-                    st.metric("Total Users", len(df))
-
-                    if "user_id" in df.columns:
-                        st.bar_chart(df["user_id"])
-
-        elif option == "Update":
-            user_id = st.number_input("User ID")
-            name = st.text_input("New Name")
-            email = st.text_input("New Email")
-            phone = st.text_input("New Phone")
-
-            if st.button("Update"):
-                res = requests.put(f"{BASE_URL}/user_update/{int(user_id)}", json={
-                    "name": name,
-                    "email": email,
-                    "phone": phone
-                })
-                show_message(res)
-
-        elif option == "Delete":
-            user_id = st.number_input("User ID")
-
-            if st.button("Delete"):
-                res = requests.delete(f"{BASE_URL}/user_delete/{int(user_id)}")
-                show_message(res)
-
-    # ================= CARD =================
+    # CARD
     elif module == "card":
 
-        if option == "Create":
-            user_id = st.number_input("User ID")
-            card_number = st.text_input("Card Number")
-            card_type = st.text_input("Card Type")
-            expiry = st.text_input("Expiry Date")
-
-            if st.button("Submit"):
-                res = requests.post(f"{BASE_URL}/api/cards", json={
-                    "user_id": int(user_id),
-                    "card_number": card_number,
-                    "card_type": card_type,
-                    "expiry_date": expiry
-                })
-                show_message(res)
-
-        elif option == "Read":
+        if option == "Read":
             if st.button("Load Cards"):
-                res = requests.get(f"{BASE_URL}/api/cards")
-                df = pd.DataFrame(res.json())
+                df = pd.DataFrame(requests.get(f"{BASE_URL}/api/cards").json())
+                st.dataframe(df)
+                st.bar_chart(df["card_type"].value_counts())
 
-                st.dataframe(df, width='stretch')
-
-                if not df.empty and "card_type" in df.columns:
-                    st.subheader("📊 Card Type Distribution")
-                    st.bar_chart(df["card_type"].value_counts())
-
-        elif option == "Update":
-            card_id = st.number_input("Card ID")
-            user_id = st.number_input("User ID")
-            card_number = st.text_input("Card Number")
-            card_type = st.text_input("Card Type")
-            expiry = st.text_input("Expiry Date")
-
-            if st.button("Update"):
-                res = requests.put(f"{BASE_URL}/api/cards/{int(card_id)}", json={
-                    "user_id": int(user_id),
-                    "card_number": card_number,
-                    "card_type": card_type,
-                    "expiry_date": expiry
-                })
-                show_message(res)
-
-        elif option == "Delete":
-            card_id = st.number_input("Card ID")
-
-            if st.button("Delete"):
-                res = requests.delete(f"{BASE_URL}/api/cards/{int(card_id)}")
-                show_message(res)
-
-    # ================= TRANSACTION =================
+    # TRANSACTION
     elif module == "transaction":
 
-        if option == "Create":
-            user_id = st.number_input("User ID")
-            card_id = st.number_input("Card ID")
-            merchant_id = st.number_input("Merchant ID")
-            amount = st.number_input("Amount")
-            status = st.text_input("Status")
-
-            if st.button("Submit"):
-                res = requests.post(f"{BASE_URL}/transaction_add", json={
-                    "user_id": int(user_id),
-                    "card_id": int(card_id),
-                    "merchant_id": int(merchant_id),
-                    "amount": float(amount),
-                    "status": status
-                })
-                show_message(res)
-
-        elif option == "Read":
+        if option == "Read":
             if st.button("Load Transactions"):
-                res = requests.get(f"{BASE_URL}/transaction")
-                df = pd.DataFrame(res.json())
-
-                st.dataframe(df, width='stretch')
+                df = pd.DataFrame(requests.get(f"{BASE_URL}/transaction").json())
+                st.dataframe(df)
 
                 if not df.empty:
-                    df['amount'] = pd.to_numeric(df['amount'], errors='coerce')
+                    st.bar_chart(df["status"].value_counts())
+                    if "category" in df.columns:
+                        st.bar_chart(df["category"].value_counts())
 
-                    st.metric("Total Transactions", len(df))
-                    st.metric("Total Amount", int(df['amount'].sum()))
-
-                    if 'transaction_time' in df.columns:
-                        df['transaction_time'] = pd.to_datetime(df['transaction_time'])
-                        df = df.sort_values('transaction_time')
-
-                        st.subheader("💰 Amount Spent Over Time")
-                        df.set_index('transaction_time', inplace=True)
-                        st.line_chart(df['amount'])
-
-                    if 'status' in df.columns:
-                        st.subheader("📊 Status Distribution")
-                        st.bar_chart(df['status'].value_counts())
-
-        elif option == "Update":
-            txn_id = st.number_input("Transaction ID")
-            amount = st.number_input("Amount")
-            status = st.text_input("Status")
-
-            if st.button("Update"):
-                res = requests.put(f"{BASE_URL}/transaction_update/{int(txn_id)}", json={
-                    "amount": float(amount),
-                    "status": status
-                })
-                show_message(res)
-
-        elif option == "Delete":
-            txn_id = st.number_input("Transaction ID")
-
-            if st.button("Delete"):
-                res = requests.delete(f"{BASE_URL}/transaction_delete/{int(txn_id)}")
-                show_message(res)
-
-    # ================= MERCHANT =================
+    # MERCHANT
     elif module == "merchant":
-        st.warning("⚠️ Merchant module not implemented in Flask yet")
+        st.warning("⚠️ Merchant module not implemented")
