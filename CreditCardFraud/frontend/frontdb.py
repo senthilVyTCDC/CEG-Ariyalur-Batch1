@@ -4,250 +4,189 @@ import pandas as pd
 
 BASE_URL = "http://127.0.0.1:5000"
 
-st.set_page_config(page_title="Fraud Detection System", layout="wide")
+st.title("💳 Fraud Detection System")
 
-if "page" not in st.session_state:
-    st.session_state.page = "home"
+menu = st.sidebar.selectbox("Module", [
+    "Users",
+    "Cards",
+    "Transactions",
+    "Fraud Detection"
+])
 
-if "module" not in st.session_state:
-    st.session_state.module = None
+# ================= USERS =================
+if menu == "Users":
+
+    st.subheader("👤 Users")
+
+    if st.button("Load Users"):
+        df = pd.DataFrame(requests.get(f"{BASE_URL}/users").json())
+        st.dataframe(df)
+
+        st.subheader("📊 Account Type Distribution")
+        st.bar_chart(df["account_type"].value_counts())
+        st.caption("Number of users in each account type")
+
+        df["age_group"] = df["age"].apply(lambda x: "Below 25" if x < 25 else "25-50" if x <= 50 else "Above 50")
+        st.subheader("📊 Age Group Distribution")
+        st.bar_chart(df["age_group"].value_counts())
+        st.caption("User distribution by age")
+
+    with st.expander("➕ Add User"):
+        uid = st.number_input("User ID", key="u1")
+        name = st.text_input("Name", key="u2")
+        phone = st.text_input("Phone", key="u3")
+        age = st.number_input("Age", key="u4")
+        acc = st.selectbox("Account Type", ["savings","current","premium"], key="u5")
+        days = st.number_input("Account Age Days", key="u6")
+
+        if st.button("Add"):
+            requests.post(f"{BASE_URL}/users", json={
+                "user_id": uid, "name": name, "phone": phone,
+                "age": age, "account_type": acc, "account_age_days": days
+            })
+            st.success("Added")
+
+    with st.expander("✏️ Update User"):
+        uid = st.number_input("User ID", key="u7")
+        name = st.text_input("New Name", key="u8")
+        phone = st.text_input("New Phone", key="u9")
+        age = st.number_input("New Age", key="u10")
+        acc = st.selectbox("Account Type", ["savings","current","premium"], key="u11")
+        days = st.number_input("Account Age Days", key="u12")
+
+        if st.button("Update"):
+            requests.put(f"{BASE_URL}/users/{int(uid)}", json={
+                "name": name, "phone": phone,
+                "age": age, "account_type": acc, "account_age_days": days
+            })
+            st.success("Updated")
+
+    with st.expander("🗑 Delete User"):
+        uid = st.number_input("User ID", key="u13")
+        if st.button("Delete"):
+            requests.delete(f"{BASE_URL}/users/{int(uid)}")
+            st.success("Deleted")
 
 
-def go_home():
-    st.session_state.page = "home"
-    st.session_state.module = None
+# ================= CARDS =================
+elif menu == "Cards":
+
+    st.subheader("💳 Cards")
+
+    if st.button("Load Cards"):
+        df = pd.DataFrame(requests.get(f"{BASE_URL}/cards").json())
+        st.dataframe(df)
+
+        st.subheader("📊 Card Limit Distribution")
+        st.bar_chart(df["card_limit"].value_counts())
+        st.caption("Number of cards by limit")
+
+    with st.expander("➕ Add Card"):
+        cid = st.number_input("Card ID", key="c1")
+        uid = st.number_input("User ID", key="c2")
+        limit = st.selectbox("Limit",[50000,100000,150000,200000],key="c3")
+        status = st.selectbox("Status",["active","blocked"],key="c4")
+        freq = st.number_input("Usage Frequency",key="c5")
+
+        if st.button("Add Card"):
+            requests.post(f"{BASE_URL}/cards", json={
+                "card_id":cid,"user_id":uid,"card_limit":limit,
+                "card_status":status,"usage_frequency":freq
+            })
+            st.success("Added")
+
+    with st.expander("✏️ Update Card"):
+        cid = st.number_input("Card ID", key="c6")
+        limit = st.selectbox("Limit",[50000,100000,150000,200000],key="c7")
+        status = st.selectbox("Status",["active","blocked"],key="c8")
+        freq = st.number_input("Usage Frequency",key="c9")
+
+        if st.button("Update Card"):
+            requests.put(f"{BASE_URL}/cards/{int(cid)}", json={
+                "card_limit":limit,"card_status":status,"usage_frequency":freq
+            })
+            st.success("Updated")
+
+    with st.expander("🗑 Delete Card"):
+        cid = st.number_input("Card ID", key="c10")
+        if st.button("Delete Card"):
+            requests.delete(f"{BASE_URL}/cards/{int(cid)}")
+            st.success("Deleted")
 
 
-def open_module(name):
-    st.session_state.page = "module"
-    st.session_state.module = name
+# ================= TRANSACTIONS =================
+elif menu == "Transactions":
+
+    st.subheader("💸 Transactions")
+
+    if st.button("Load Transactions"):
+        df = pd.DataFrame(requests.get(f"{BASE_URL}/transactions").json())
+        st.dataframe(df)
+
+        st.subheader("📈 Transaction Amount Over Time")
+        df["transaction_time"] = pd.to_datetime(df["transaction_time"])
+        st.line_chart(df.set_index("transaction_time")["amount"])
+        st.caption("Shows spending pattern over time")
+
+        st.subheader("📊 Transaction Type Distribution")
+        st.bar_chart(df["transaction_type"].value_counts())
+        st.caption("Online vs Swipe vs Withdrawal")
+
+        st.subheader("📊 Device Usage Distribution")
+        st.bar_chart(df["device_type"].value_counts())
+        st.caption("Mobile vs ATM vs POS usage")
+
+    with st.expander("➕ Add Transaction"):
+        tid = st.number_input("Transaction ID", key="t1")
+        uid = st.number_input("User ID", key="t2")
+        cid = st.number_input("Card ID", key="t3")
+        mid = st.number_input("Merchant ID", key="t4")
+        amt = st.number_input("Amount", key="t5")
+        time = st.text_input("Transaction Time", key="t6")
+        loc = st.selectbox("Location",["Chennai","Delhi","Mumbai","Bangalore"],key="t7")
+        dev = st.selectbox("Device",["mobile","ATM","POS"],key="t8")
+        typ = st.selectbox("Type",["online","swipe","withdrawal"],key="t9")
+        freq = st.number_input("Frequency",key="t10")
+
+        if st.button("Add Transaction"):
+            requests.post(f"{BASE_URL}/transactions", json={
+                "transaction_id":tid,"user_id":uid,"card_id":cid,
+                "merchant_id":mid,"amount":amt,"transaction_time":time,
+                "location":loc,"device_type":dev,"transaction_type":typ,
+                "transaction_frequency":freq
+            })
+            st.success("Added")
+
+    with st.expander("✏️ Update Transaction"):
+        tid = st.number_input("Transaction ID", key="t11")
+        amt = st.number_input("Amount", key="t12")
+        loc = st.selectbox("Location",["Chennai","Delhi"],key="t13")
+        dev = st.selectbox("Device",["mobile","ATM","POS"],key="t14")
+        typ = st.selectbox("Type",["online","swipe","withdrawal"],key="t15")
+        freq = st.number_input("Frequency",key="t16")
+
+        if st.button("Update Transaction"):
+            requests.put(f"{BASE_URL}/transactions/{int(tid)}", json={
+                "amount":amt,"location":loc,"device_type":dev,
+                "transaction_type":typ,"transaction_frequency":freq
+            })
+            st.success("Updated")
+
+    with st.expander("🗑 Delete Transaction"):
+        tid = st.number_input("Transaction ID", key="t17")
+        if st.button("Delete Transaction"):
+            requests.delete(f"{BASE_URL}/transactions/{int(tid)}")
+            st.success("Deleted")
 
 
-def show_message(res):
-    try:
-        st.success(res.json().get("message", "Success"))
-    except:
-        st.error("Error occurred")
+# ================= FRAUD =================
+elif menu == "Fraud Detection":
 
+    if st.button("Run Fraud Detection"):
+        df = pd.DataFrame(requests.get(f"{BASE_URL}/detect_fraud").json())
 
-# ---------------- HOME ----------------
-if st.session_state.page == "home":
+        st.dataframe(df)
 
-    st.title("💳 Credit Card Fraud Detection System")
-    st.write("Secure • Monitor • Detect Fraud")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        if st.button("👤 User"):
-            open_module("user")
-        if st.button("💳 Card"):
-            open_module("card")
-
-    with col2:
-        if st.button("💰 Transaction"):
-            open_module("transaction")
-        if st.button("🚨 Fraud Monitor"):
-            open_module("fraud")
-
-# ---------------- MODULE ----------------
-else:
-
-    module = st.session_state.module
-    st.title(f"{module.upper()} MODULE")
-
-    st.button("⬅ Back", on_click=go_home)
-
-    option = st.radio("Operation", ["Create", "Read", "Update", "Delete"], horizontal=True)
-    st.divider()
-
-    # ================= USER =================
-    if module == "user":
-
-        if option == "Create":
-            user_id = st.number_input("User ID")
-            name = st.text_input("Name")
-            email = st.text_input("Email")
-            phone = st.text_input("Phone")
-            age = st.number_input("Age")
-            gender = st.selectbox("Gender", ["Male", "Female"])
-            bank = st.text_input("Bank Name")
-            acc = st.selectbox("Account Type", ["Savings", "Business", "Employee"])
-
-            if st.button("Submit"):
-                res = requests.post(f"{BASE_URL}/users", json={
-                    "user_id": int(user_id),
-                    "name": name,
-                    "email": email,
-                    "phone": phone,
-                    "age": int(age),
-                    "gender": gender,
-                    "bank_name": bank,
-                    "account_type": acc
-                })
-                show_message(res)
-
-        elif option == "Read":
-            if st.button("Load"):
-                df = pd.DataFrame(requests.get(f"{BASE_URL}/users").json())
-                st.dataframe(df, use_container_width=True)
-                st.metric("Total Users", len(df))
-
-        elif option == "Update":
-            user_id = st.number_input("User ID")
-            name = st.text_input("Name")
-            email = st.text_input("Email")
-            phone = st.text_input("Phone")
-
-            if st.button("Update"):
-                res = requests.put(f"{BASE_URL}/users/{int(user_id)}", json={
-                    "name": name,
-                    "email": email,
-                    "phone": phone
-                })
-                show_message(res)
-
-        elif option == "Delete":
-            user_id = st.number_input("User ID")
-
-            if st.button("Delete"):
-                res = requests.delete(f"{BASE_URL}/users/{int(user_id)}")
-                show_message(res)
-
-    # ================= CARD =================
-    elif module == "card":
-
-        if option == "Create":
-            card_id = st.number_input("Card ID")
-            user_id = st.number_input("User ID")
-            card_number = st.text_input("Card Number")
-            expiry = st.text_input("Expiry Date")
-            limit = st.number_input("Card Limit")
-            last_used = st.text_input("Last Used")
-
-            if st.button("Submit"):
-                res = requests.post(f"{BASE_URL}/cards", json={
-                    "card_id": int(card_id),
-                    "user_id": int(user_id),
-                    "card_number": card_number,
-                    "expiry_date": expiry,
-                    "card_limit": float(limit),
-                    "last_used": last_used
-                })
-                show_message(res)
-
-        elif option == "Read":
-            if st.button("Load"):
-                df = pd.DataFrame(requests.get(f"{BASE_URL}/cards").json())
-                st.dataframe(df, use_container_width=True)
-
-                if not df.empty:
-                    st.bar_chart(df["card_limit"])
-
-        elif option == "Update":
-            card_id = st.number_input("Card ID")
-            user_id = st.number_input("User ID")
-            card_number = st.text_input("Card Number")
-            expiry = st.text_input("Expiry Date")
-            limit = st.number_input("Card Limit")
-            last_used = st.text_input("Last Used")
-
-            if st.button("Update"):
-                res = requests.put(f"{BASE_URL}/cards/{int(card_id)}", json={
-                    "user_id": int(user_id),
-                    "card_number": card_number,
-                    "expiry_date": expiry,
-                    "card_limit": float(limit),
-                    "last_used": last_used
-                })
-                show_message(res)
-
-        elif option == "Delete":
-            card_id = st.number_input("Card ID")
-
-            if st.button("Delete"):
-                res = requests.delete(f"{BASE_URL}/cards/{int(card_id)}")
-                show_message(res)
-
-    # ================= TRANSACTION =================
-    elif module == "transaction":
-
-        if option == "Create":
-            txn_id = st.number_input("Transaction ID")
-            user_id = st.number_input("User ID")
-            card_id = st.number_input("Card ID")
-            merchant_id = st.number_input("Merchant ID")
-            amount = st.number_input("Amount")
-            datetime = st.text_input("Datetime")
-            location = st.text_input("Location")
-            category = st.text_input("Category")
-            txn_type = st.text_input("Type")
-
-            if st.button("Submit"):
-                res = requests.post(f"{BASE_URL}/transactions", json={
-                    "transaction_id": int(txn_id),
-                    "user_id": int(user_id),
-                    "card_id": int(card_id),
-                    "merchant_id": int(merchant_id),
-                    "amount": float(amount),
-                    "transaction_datetime": datetime,
-                    "location": location,
-                    "category": category,
-                    "transaction_type": txn_type
-                })
-                show_message(res)
-
-        elif option == "Read":
-            if st.button("Load"):
-                df = pd.DataFrame(requests.get(f"{BASE_URL}/transactions").json())
-                st.dataframe(df, use_container_width=True)
-
-                if not df.empty:
-                    df["amount"] = pd.to_numeric(df["amount"], errors='coerce')
-
-                    st.metric("Total Transactions", len(df))
-                    st.metric("Total Amount", int(df["amount"].sum()))
-
-                    if "transaction_datetime" in df.columns:
-                        df["transaction_datetime"] = pd.to_datetime(df["transaction_datetime"])
-                        df = df.sort_values("transaction_datetime")
-                        st.line_chart(df.set_index("transaction_datetime")["amount"])
-
-                    if "category" in df.columns:
-                        st.bar_chart(df["category"].value_counts())
-
-        elif option == "Update":
-            txn_id = st.number_input("Transaction ID")
-            amount = st.number_input("Amount")
-            location = st.text_input("Location")
-            category = st.text_input("Category")
-            txn_type = st.text_input("Type")
-
-            if st.button("Update"):
-                res = requests.put(f"{BASE_URL}/transactions/{int(txn_id)}", json={
-                    "amount": float(amount),
-                    "location": location,
-                    "category": category,
-                    "transaction_type": txn_type
-                })
-                show_message(res)
-
-        elif option == "Delete":
-            txn_id = st.number_input("Transaction ID")
-
-            if st.button("Delete"):
-                res = requests.delete(f"{BASE_URL}/transactions/{int(txn_id)}")
-                show_message(res)
-
-    # ================= FRAUD =================
-    elif module == "fraud":
-
-        st.subheader("🚨 Fraud Detection")
-
-        if st.button("Load Predictions"):
-            df = pd.DataFrame(requests.get(f"{BASE_URL}/fraud_prediction").json())
-            st.dataframe(df, use_container_width=True)
-
-        if st.button("Load Alerts"):
-            df = pd.DataFrame(requests.get(f"{BASE_URL}/fraud_alert").json())
-            st.dataframe(df, use_container_width=True)
+        st.subheader("📊 Fraud vs Normal Transactions")
+        st.bar_chart(df["status"].value_counts())
+        st.caption("Shows fraud detection results")

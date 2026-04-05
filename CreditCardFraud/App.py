@@ -1,51 +1,36 @@
 from flask import Flask, request, jsonify
 import mysql.connector
+from datetime import datetime
 
 app = Flask(__name__)
 
-# ---------- DB CONNECTION ----------
 db = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="1234",   # change if needed
+    password="rajesh",
     database="creditcardfraud"
 )
 
 cursor = db.cursor(dictionary=True)
 
-# ---------------- HOME ----------------
-@app.route('/')
-def home():
-    return "API Running 🚀"
-
-
-# =========================================================
-# 🔹 USER MODULE
-# =========================================================
+# ================= USERS =================
 @app.route('/users', methods=['GET'])
 def get_users():
-    cursor.execute("SELECT * FROM user")
+    cursor.execute("SELECT * FROM users")
     return jsonify(cursor.fetchall())
 
 
 @app.route('/users', methods=['POST'])
 def add_user():
     data = request.json
-
     cursor.execute("""
-        INSERT INTO user (user_id, name, email, phone, age, gender, bank_name, account_type)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+        INSERT INTO users 
+        (user_id, name, phone, age, account_type, account_age_days, avg_monthly_spend)
+        VALUES (%s,%s,%s,%s,%s,%s,%s)
     """, (
-        data['user_id'],
-        data['name'],
-        data['email'],
-        data['phone'],
-        data['age'],
-        data['gender'],
-        data['bank_name'],
-        data['account_type']
+        data['user_id'], data['name'], data['phone'], data['age'],
+        data['account_type'], data['account_age_days'], 0
     ))
-
     db.commit()
     return jsonify({"message": "User added"})
 
@@ -53,50 +38,44 @@ def add_user():
 @app.route('/users/<int:id>', methods=['PUT'])
 def update_user(id):
     data = request.json
-
     cursor.execute("""
-        UPDATE user
-        SET name=%s, email=%s, phone=%s
+        UPDATE users SET 
+        name=%s, phone=%s, age=%s,
+        account_type=%s, account_age_days=%s
         WHERE user_id=%s
-    """, (data['name'], data['email'], data['phone'], id))
-
+    """, (
+        data['name'], data['phone'], data['age'],
+        data['account_type'], data['account_age_days'], id
+    ))
     db.commit()
     return jsonify({"message": "User updated"})
 
 
 @app.route('/users/<int:id>', methods=['DELETE'])
 def delete_user(id):
-    cursor.execute("DELETE FROM user WHERE user_id=%s", (id,))
+    cursor.execute("DELETE FROM users WHERE user_id=%s", (id,))
     db.commit()
     return jsonify({"message": "User deleted"})
 
 
-# =========================================================
-# 🔹 CARD MODULE
-# =========================================================
+# ================= CARDS =================
 @app.route('/cards', methods=['GET'])
 def get_cards():
-    cursor.execute("SELECT * FROM card")
+    cursor.execute("SELECT * FROM cards")
     return jsonify(cursor.fetchall())
 
 
 @app.route('/cards', methods=['POST'])
 def add_card():
     data = request.json
-
     cursor.execute("""
-        INSERT INTO card
-        (card_id, user_id, card_number, expiry_date, card_limit, last_used)
-        VALUES (%s,%s,%s,%s,%s,%s)
+        INSERT INTO cards 
+        (card_id, user_id, card_limit, card_status, usage_frequency)
+        VALUES (%s,%s,%s,%s,%s)
     """, (
-        data['card_id'],
-        data['user_id'],
-        data['card_number'],
-        data['expiry_date'],
-        data['card_limit'],
-        data['last_used']
+        data['card_id'], data['user_id'], data['card_limit'],
+        data['card_status'], data['usage_frequency']
     ))
-
     db.commit()
     return jsonify({"message": "Card added"})
 
@@ -104,41 +83,29 @@ def add_card():
 @app.route('/cards/<int:id>', methods=['PUT'])
 def update_card(id):
     data = request.json
-
     cursor.execute("""
-        UPDATE card
-        SET user_id=%s,
-            card_number=%s,
-            expiry_date=%s,
-            card_limit=%s,
-            last_used=%s
+        UPDATE cards SET 
+        card_limit=%s, card_status=%s, usage_frequency=%s
         WHERE card_id=%s
     """, (
-        data['user_id'],
-        data['card_number'],
-        data['expiry_date'],
-        data['card_limit'],
-        data['last_used'],
-        id
+        data['card_limit'], data['card_status'],
+        data['usage_frequency'], id
     ))
-
     db.commit()
     return jsonify({"message": "Card updated"})
 
 
 @app.route('/cards/<int:id>', methods=['DELETE'])
 def delete_card(id):
-    cursor.execute("DELETE FROM card WHERE card_id=%s", (id,))
+    cursor.execute("DELETE FROM cards WHERE card_id=%s", (id,))
     db.commit()
     return jsonify({"message": "Card deleted"})
 
 
-# =========================================================
-# 🔹 TRANSACTION MODULE
-# =========================================================
+# ================= TRANSACTIONS =================
 @app.route('/transactions', methods=['GET'])
 def get_transactions():
-    cursor.execute("SELECT * FROM transaction_")
+    cursor.execute("SELECT * FROM transactions_")
     return jsonify(cursor.fetchall())
 
 
@@ -147,21 +114,55 @@ def add_transaction():
     data = request.json
 
     cursor.execute("""
-        INSERT INTO transaction_
-        (transaction_id, user_id, card_id, merchant_id, amount,
-         transaction_datetime, location, category, transaction_type)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        SELECT transaction_time, location 
+        FROM transactions_
+        WHERE user_id=%s
+        ORDER BY transaction_time DESC
+        LIMIT 1
+    """, (data['user_id'],))
+
+    prev = cursor.fetchone()
+
+    if prev:
+        previous_time = prev['transaction_time']
+        previous_location = prev['location']
+        current_time = datetime.strptime(data['transaction_time'], "%Y-%m-%d %H:%M:%S")
+        gap = int((current_time - previous_time).total_seconds() / 60)
+    else:
+        previous_time = data['transaction_time']
+        previous_location = data['location']
+        gap = 0
+
+    cursor.execute("""
+        SELECT AVG(amount) AS avg_amt 
+        FROM transactions_
+        WHERE user_id=%s
+    """, (data['user_id'],))
+
+    result = cursor.fetchone()
+    avg_amt = result['avg_amt'] if result['avg_amt'] else data['amount']
+
+    cursor.execute("""
+        INSERT INTO transactions_ (
+            transaction_id, user_id, card_id, merchant_id, amount,
+            transaction_time, previous_transaction_time,
+            location, previous_location,
+            device_type, transaction_type,
+            transaction_frequency, last_transaction_gap,
+            user_avg_transaction_amount
+        )
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
     """, (
-        data['transaction_id'],
-        data['user_id'],
-        data['card_id'],
-        data['merchant_id'],
-        data['amount'],
-        data['transaction_datetime'],
-        data['location'],
-        data['category'],
-        data['transaction_type']
+        data['transaction_id'], data['user_id'], data['card_id'],
+        data['merchant_id'], data['amount'], data['transaction_time'],
+        previous_time, data['location'], previous_location,
+        data['device_type'], data['transaction_type'],
+        data['transaction_frequency'], gap, avg_amt
     ))
+
+    cursor.execute("""
+        UPDATE users SET avg_monthly_spend=%s WHERE user_id=%s
+    """, (avg_amt, data['user_id']))
 
     db.commit()
     return jsonify({"message": "Transaction added"})
@@ -170,48 +171,69 @@ def add_transaction():
 @app.route('/transactions/<int:id>', methods=['PUT'])
 def update_transaction(id):
     data = request.json
-
     cursor.execute("""
-        UPDATE transaction_
-        SET amount=%s,
-            location=%s,
-            category=%s,
-            transaction_type=%s
+        UPDATE transactions_ SET
+        amount=%s, location=%s, device_type=%s,
+        transaction_type=%s, transaction_frequency=%s
         WHERE transaction_id=%s
     """, (
-        data['amount'],
-        data['location'],
-        data['category'],
-        data['transaction_type'],
-        id
+        data['amount'], data['location'], data['device_type'],
+        data['transaction_type'], data['transaction_frequency'], id
     ))
-
     db.commit()
     return jsonify({"message": "Transaction updated"})
 
 
 @app.route('/transactions/<int:id>', methods=['DELETE'])
 def delete_transaction(id):
-    cursor.execute("DELETE FROM transaction_ WHERE transaction_id=%s", (id,))
+    cursor.execute("DELETE FROM transactions_ WHERE transaction_id=%s", (id,))
     db.commit()
     return jsonify({"message": "Transaction deleted"})
 
 
-# =========================================================
-# 🔹 FRAUD MODULE
-# =========================================================
-@app.route('/fraud_prediction', methods=['GET'])
-def fraud_prediction():
-    cursor.execute("SELECT * FROM fraud_prediction")
-    return jsonify(cursor.fetchall())
+# ================= FRAUD =================
+@app.route('/detect_fraud', methods=['GET'])
+def detect_fraud():
+
+    cursor.execute("""
+        SELECT t.*, c.card_limit
+        FROM transactions_ t
+        JOIN cards c ON t.card_id = c.card_id
+    """)
+
+    data = cursor.fetchall()
+    results = []
+
+    for row in data:
+        risk = 0
+        amount = float(row['amount'])
+        limit = float(row['card_limit'])
+        gap = int(row['last_transaction_gap'])
+        freq = int(row['transaction_frequency'])
+        hour = int(str(row['transaction_time'])[11:13])
+
+        if amount > 0.8 * limit:
+            risk += 1
+        if row['location'] != row['previous_location'] and gap < 60:
+            risk += 2
+        if hour < 4 and amount > 0.6 * limit:
+            risk += 2
+        if freq > 10 and gap < 30:
+            risk += 2
+        if amount > 3 * float(row['user_avg_transaction_amount']):
+            risk += 1
+
+        status = "Fraud" if risk >= 3 else "Normal"
+
+        results.append({
+            "transaction_id": row['transaction_id'],
+            "amount": amount,
+            "risk_score": risk,
+            "status": status
+        })
+
+    return jsonify(results)
 
 
-@app.route('/fraud_alert', methods=['GET'])
-def fraud_alert():
-    cursor.execute("SELECT * FROM fraud_alert")
-    return jsonify(cursor.fetchall())
-
-
-# ---------------- RUN ----------------
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)
