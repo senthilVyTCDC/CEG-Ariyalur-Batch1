@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import pandas as pd
 
-BASE_URL = "http://127.0.0.1:5000"
+BASE_URL = "http://127.0.0.1:5000"  # Change if needed
 
 st.title("💳 Fraud Detection System")
 
@@ -190,3 +190,230 @@ elif menu == "Fraud Detection":
         st.subheader("📊 Fraud vs Normal Transactions")
         st.bar_chart(df["status"].value_counts())
         st.caption("Shows fraud detection results")
+
+st.set_page_config(page_title="Credit Card Fraud System", layout="wide")
+
+st.title("💳 Credit Card Fraud Detection System - Frontend")
+
+# ================= MODULE SELECTION =================
+module = st.sidebar.selectbox(
+    "Select Module",
+    ["users", "cards", "transactions", "merchants"]
+)
+
+operation = st.sidebar.selectbox(
+    "Operation",
+    ["Create", "Read", "Update", "Delete"]
+)
+
+# ================= USERS =================
+if module == "users":
+
+    if operation == "Create":
+        st.subheader("➕ Add User")
+        user_id = st.number_input("User ID")
+        name = st.text_input("Name")
+        phone = st.number_input("Phone")
+        age = st.number_input("Age")
+        account_type = st.selectbox("Account Type", ["savings", "current", "premium"])
+        account_age_days = st.number_input("Account Age (days)")
+        avg_monthly_spend = st.number_input("Avg Monthly Spend")
+
+        if st.button("Create User"):
+            data = {
+                "user_id": user_id,
+                "name": name,
+                "phone": phone,
+                "age": age,
+                "account_type": account_type,
+                "account_age_days": account_age_days,
+                "avg_monthly_spend": avg_monthly_spend
+            }
+            res = requests.post(f"{BASE_URL}/users", json=data)
+            st.success(res.json())
+
+    elif operation == "Read":
+        st.subheader("📄 View Users")
+        if st.button("Load Users"):
+            res = requests.get(f"{BASE_URL}/users")
+            df = pd.DataFrame(res.json())
+            st.dataframe(df)
+
+    elif operation == "Update":
+        st.subheader("✏️ Update User")
+        user_id = st.number_input("User ID to Update")
+        name = st.text_input("New Name")
+        phone = st.number_input("New Phone")
+        age = st.number_input("New Age")
+        account_type = st.selectbox("New Account Type", ["savings", "current", "premium"])
+        account_age_days = st.number_input("New Account Age")
+        avg_monthly_spend = st.number_input("New Avg Spend")
+
+        if st.button("Update User"):
+            data = {
+                "name": name,
+                "phone": phone,
+                "age": age,
+                "account_type": account_type,
+                "account_age_days": account_age_days,
+                "avg_monthly_spend": avg_monthly_spend
+            }
+            res = requests.put(f"{BASE_URL}/users/{user_id}", json=data)
+            st.success(res.json())
+
+    elif operation == "Delete":
+        st.subheader("🗑 Delete User")
+        user_id = st.number_input("User ID to Delete")
+        if st.button("Delete User"):
+            res = requests.delete(f"{BASE_URL}/users/{user_id}")
+            st.success(res.json())
+
+# ================= MERCHANTS =================
+elif module == "merchants":
+
+    if operation == "Create":
+        st.subheader("➕ Add Merchant")
+        merchant_id = st.number_input("Merchant ID")
+        category = st.text_input("Category")
+        location = st.text_input("Location")
+
+        if st.button("Create Merchant"):
+            data = {
+                "merchant_id": merchant_id,
+                "category": category,
+                "location": location
+            }
+            res = requests.post(f"{BASE_URL}/merchants", json=data)
+            st.success(res.json())
+
+    elif operation == "Read":
+        st.subheader("📄 View Merchants")
+        if st.button("Load Merchants"):
+            res = requests.get(f"{BASE_URL}/merchants")
+            df = pd.DataFrame(res.json())
+            st.dataframe(df)
+
+    elif operation == "Update":
+        st.subheader("✏️ Update Merchant")
+        merchant_id = st.number_input("Merchant ID")
+        category = st.text_input("New Category")
+        location = st.text_input("New Location")
+
+        if st.button("Update Merchant"):
+            data = {"category": category, "location": location}
+            res = requests.put(f"{BASE_URL}/merchants/{merchant_id}", json=data)
+            st.success(res.json())
+
+    elif operation == "Delete":
+        st.subheader("🗑 Delete Merchant")
+        merchant_id = st.number_input("Merchant ID")
+        if st.button("Delete Merchant"):
+            res = requests.delete(f"{BASE_URL}/merchants/{merchant_id}")
+            st.success(res.json())
+
+# ================= CARDS =================
+elif module == "cards":
+
+    if operation == "Create":
+        st.subheader("➕ Add Card")
+        card_id = st.number_input("Card ID")
+        user_id = st.number_input("User ID")
+        card_type = st.selectbox("Card Type", ["Visa", "MasterCard", "RuPay"])
+        card_limit = st.number_input("Card Limit")
+        card_status = st.text_input("Card Status")
+        is_active = st.checkbox("Is Active")
+
+        if st.button("Create Card"):
+            data = {
+                "card_id": card_id,
+                "user_id": user_id,
+                "card_type": card_type,
+                "card_limit": card_limit,
+                "card_status": card_status,
+                "is_active": is_active
+            }
+            res = requests.post(f"{BASE_URL}/cards", json=data)
+            st.success(res.json())
+
+    elif operation == "Read":
+        st.subheader("📄 View Cards")
+        if st.button("Load Cards"):
+            res = requests.get(f"{BASE_URL}/cards")
+            df = pd.DataFrame(res.json())
+            st.dataframe(df)
+
+    elif operation == "Update":
+        st.subheader("✏️ Update Card")
+        card_id = st.number_input("Card ID")
+        card_status = st.text_input("New Status")
+        is_active = st.checkbox("Active")
+
+        if st.button("Update Card"):
+            data = {"card_status": card_status, "is_active": is_active}
+            res = requests.put(f"{BASE_URL}/cards/{card_id}", json=data)
+            st.success(res.json())
+
+    elif operation == "Delete":
+        st.subheader("🗑 Delete Card")
+        card_id = st.number_input("Card ID")
+        if st.button("Delete Card"):
+            res = requests.delete(f"{BASE_URL}/cards/{card_id}")
+            st.success(res.json())
+
+# ================= TRANSACTIONS =================
+elif module == "transactions":
+
+    if operation == "Create":
+        st.subheader("➕ Add Transaction")
+        transaction_id = st.number_input("Transaction ID")
+        user_id = st.number_input("User ID")
+        card_id = st.number_input("Card ID")
+        merchant_id = st.number_input("Merchant ID")
+        amount = st.number_input("Amount")
+        device_type = st.selectbox("Device", ["mobile", "web", "atm"])
+        transaction_type = st.selectbox("Type", ["online", "offline"])
+        is_international = st.checkbox("International")
+        is_fraud = st.checkbox("Fraud")
+
+        if st.button("Create Transaction"):
+            data = {
+                "transaction_id": transaction_id,
+                "user_id": user_id,
+                "card_id": card_id,
+                "merchant_id": merchant_id,
+                "amount": amount,
+                "device_type": device_type,
+                "transaction_type": transaction_type,
+                "is_international": is_international,
+                "is_fraud": is_fraud
+            }
+            res = requests.post(f"{BASE_URL}/transactions_", json=data)
+            st.success(res.json())
+
+    elif operation == "Read":
+        st.subheader("📄 View Transactions")
+        if st.button("Load Transactions"):
+            res = requests.get(f"{BASE_URL}/transactions_")
+            df = pd.DataFrame(res.json())
+            st.dataframe(df)
+
+    elif operation == "Update":
+        st.subheader("✏️ Update Transaction")
+        transaction_id = st.number_input("Transaction ID")
+        amount = st.number_input("New Amount")
+        is_fraud = st.checkbox("Fraud")
+
+        if st.button("Update Transaction"):
+            data = {"amount": amount, "is_fraud": is_fraud}
+            res = requests.put(f"{BASE_URL}/transactions_/{transaction_id}", json=data)
+            st.success(res.json())
+
+    elif operation == "Delete":
+        st.subheader("🗑 Delete Transaction")
+        transaction_id = st.number_input("Transaction ID")
+        if st.button("Delete Transaction"):
+            res = requests.delete(f"{BASE_URL}/transactions_/{transaction_id}")
+            st.success(res.json())
+
+st.sidebar.markdown("---")
+st.sidebar.info("Make sure your Flask API is running 🚀")

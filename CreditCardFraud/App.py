@@ -4,6 +4,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 
+<<<<<<< HEAD
 db = mysql.connector.connect(
     host="localhost",
     user="root",
@@ -107,12 +108,46 @@ def delete_card(id):
 def get_transactions():
     cursor.execute("SELECT * FROM transactions_")
     return jsonify(cursor.fetchall())
+=======
+# ---------- DB CONNECTION FUNCTION ----------
+def get_db():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="1234",
+        database="creditcardfraud"
+    )
+
+# ---------- HOME ----------
+@app.route('/')
+def home():
+    return jsonify({"message": "API Running 🚀"})
 
 
-@app.route('/transactions', methods=['POST'])
+# =========================================================
+# 🔹 TRANSACTION MODULE
+# =========================================================
+@app.route('/transactions_', methods=['GET'])
+def get_transactions():
+    try:
+        db = get_db()
+        cursor = db.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM transactions_")
+        data = cursor.fetchall()
+        return jsonify(data if data else [])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+>>>>>>> 18ee112 (updated db)
+
+
+@app.route('/transactions_', methods=['POST'])
 def add_transaction():
-    data = request.json
+    try:
+        data = request.json
+        db = get_db()
+        cursor = db.cursor()
 
+<<<<<<< HEAD
     cursor.execute("""
         SELECT transaction_time, location 
         FROM transactions_
@@ -166,10 +201,34 @@ def add_transaction():
 
     db.commit()
     return jsonify({"message": "Transaction added"})
+=======
+        cursor.execute("""
+            INSERT INTO transactions_
+            (transaction_id, user_id, card_id, merchant_id, amount,
+             transaction_datetime, location, category, transaction_type)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        """, (
+            data['transaction_id'],
+            data['user_id'],
+            data['card_id'],
+            data['merchant_id'],
+            data['amount'],
+            data['transaction_datetime'],
+            data['location'],
+            data['category'],
+            data['transaction_type']
+        ))
+
+        db.commit()
+        return jsonify({"message": "Transaction added"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+>>>>>>> 18ee112 (updated db)
 
 
-@app.route('/transactions/<int:id>', methods=['PUT'])
+@app.route('/transactions_/<int:id>', methods=['PUT'])
 def update_transaction(id):
+<<<<<<< HEAD
     data = request.json
     cursor.execute("""
         UPDATE transactions_ SET
@@ -182,10 +241,34 @@ def update_transaction(id):
     ))
     db.commit()
     return jsonify({"message": "Transaction updated"})
+=======
+    try:
+        data = request.json
+        db = get_db()
+        cursor = db.cursor()
+
+        cursor.execute("""
+            UPDATE transactions_
+            SET amount=%s, location=%s, category=%s, transaction_type=%s
+            WHERE transaction_id=%s
+        """, (
+            data['amount'],
+            data['location'],
+            data['category'],
+            data['transaction_type'],
+            id
+        ))
+
+        db.commit()
+        return jsonify({"message": "Transaction updated"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+>>>>>>> 18ee112 (updated db)
 
 
-@app.route('/transactions/<int:id>', methods=['DELETE'])
+@app.route('/transactions_/<int:id>', methods=['DELETE'])
 def delete_transaction(id):
+<<<<<<< HEAD
     cursor.execute("DELETE FROM transactions_ WHERE transaction_id=%s", (id,))
     db.commit()
     return jsonify({"message": "Transaction deleted"})
@@ -235,5 +318,203 @@ def detect_fraud():
     return jsonify(results)
 
 
+=======
+    try:
+        db = get_db()
+        cursor = db.cursor()
+
+        cursor.execute("DELETE FROM transactions_ WHERE transaction_id=%s", (id,))
+        db.commit()
+        return jsonify({"message": "Transaction deleted"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# =========================================================
+# 🔹 CARD MODULE
+# =========================================================
+@app.route('/cards', methods=['GET'])
+def get_cards():
+    try:
+        db = get_db()
+        cursor = db.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM cards")
+        data = cursor.fetchall()
+        return jsonify(data if data else [])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/cards', methods=['POST'])
+def add_card():
+    try:
+        data = request.json
+        db = get_db()
+        cursor = db.cursor()
+
+        cursor.execute("""
+            INSERT INTO cards
+            (card_id, user_id, card_number, expiry_date, card_limit, last_used)
+            VALUES (%s,%s,%s,%s,%s,%s)
+        """, (
+            data['card_id'],
+            data['user_id'],
+            data['card_number'],
+            data['expiry_date'],
+            data['card_limit'],
+            data['last_used']
+        ))
+
+        db.commit()
+        return jsonify({"message": "Card added"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/cards/<int:id>', methods=['PUT'])
+def update_card(id):
+    try:
+        data = request.json
+        db = get_db()
+        cursor = db.cursor()
+
+        cursor.execute("""
+            UPDATE cards
+            SET user_id=%s, card_number=%s, expiry_date=%s,
+                card_limit=%s, last_used=%s
+            WHERE card_id=%s
+        """, (
+            data['user_id'],
+            data['card_number'],
+            data['expiry_date'],
+            data['card_limit'],
+            data['last_used'],
+            id
+        ))
+
+        db.commit()
+        return jsonify({"message": "Card updated"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/cards/<int:id>', methods=['DELETE'])
+def delete_card(id):
+    try:
+        db = get_db()
+        cursor = db.cursor()
+
+        cursor.execute("DELETE FROM cards WHERE card_id=%s", (id,))
+        db.commit()
+        return jsonify({"message": "Card deleted"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# =========================================================
+# 🔹 USER MODULE
+# =========================================================
+@app.route('/users', methods=['GET'])
+def get_users():
+    try:
+        db = get_db()
+        cursor = db.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM users")
+        data = cursor.fetchall()
+        return jsonify(data if data else [])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/users', methods=['POST'])
+def add_user():
+    try:
+        data = request.json
+        db = get_db()
+        cursor = db.cursor()
+
+        cursor.execute("""
+            INSERT INTO users (user_id, name, email, phone)
+            VALUES (%s,%s,%s,%s)
+        """, (
+            data['user_id'],
+            data['name'],
+            data['email'],
+            data['phone']
+        ))
+
+        db.commit()
+        return jsonify({"message": "User added"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/users/<int:id>', methods=['PUT'])
+def update_user(id):
+    try:
+        data = request.json
+        db = get_db()
+        cursor = db.cursor()
+
+        cursor.execute("""
+            UPDATE user
+            SET name=%s, email=%s, phone=%s
+            WHERE user_id=%s
+        """, (
+            data['name'],
+            data['email'],
+            data['phone'],
+            id
+        ))
+
+        db.commit()
+        return jsonify({"message": "User updated"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/users/<int:id>', methods=['DELETE'])
+def delete_user(id):
+    try:
+        db = get_db()
+        cursor = db.cursor()
+
+        cursor.execute("DELETE FROM users WHERE user_id=%s", (id,))
+        db.commit()
+        return jsonify({"message": "User deleted"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# =========================================================
+# 🔹 MERCHANT
+# =========================================================
+@app.route('/merchant', methods=['GET'])
+def get_merchant():
+    try:
+        db = get_db()
+        cursor = db.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM merchant")
+        return jsonify(cursor.fetchall())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# =========================================================
+# 🔹 FRAUD (OPTIONAL)
+# =========================================================
+@app.route('/fraud_prediction', methods=['GET'])
+def fraud_prediction():
+    try:
+        db = get_db()
+        cursor = db.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM fraud_prediction")
+        return jsonify(cursor.fetchall())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# =========================================================
+>>>>>>> 18ee112 (updated db)
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False)
