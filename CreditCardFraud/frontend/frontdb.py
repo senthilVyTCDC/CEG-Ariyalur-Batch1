@@ -120,7 +120,7 @@ elif menu == "Transactions":
     st.subheader("💸 Transactions")
 
     if st.button("Load Transactions"):
-        df = pd.DataFrame(requests.get(f"{BASE_URL}/transactions").json())
+        df = pd.DataFrame(requests.get(f"{BASE_URL}/transactions_").json())
         st.dataframe(df)
 
         st.subheader("📈 Transaction Amount Over Time")
@@ -190,7 +190,3 @@ elif menu == "Fraud Detection":
         st.subheader("📊 Fraud vs Normal Transactions")
         st.bar_chart(df["status"].value_counts())
         st.caption("Shows fraud detection results")
-
-st.set_page_config(page_title="Credit Card Fraud System", layout="wide")
-
-st.title("💳 Credit Card Fraud Detection System - Frontend")
