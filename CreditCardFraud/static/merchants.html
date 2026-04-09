@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Merchant Management</title>
+</head>
+<body>
+
+<h2>Merchant Management</h2>
+
+<!-- ===== FORM ===== -->
+<div>
+    <h3>Add / Update Merchant</h3>
+
+    <label>Merchant ID:</label><br>
+    <input type="number" id="merchant_id"><br><br>
+
+    <label>Category:</label><br>
+    <input type="text" id="category"><br><br>
+
+    <label>Location:</label><br>
+    <input type="text" id="location"><br><br>
+
+    <button onclick="addMerchant()">Add Merchant</button>
+    <button onclick="updateMerchant()">Update Merchant</button>
+</div>
+
+<hr>
+
+<!-- ===== TABLE ===== -->
+<h3>Merchant List</h3>
+
+<table border="1" cellpadding="10">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Category</th>
+            <th>Location</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="merchantTable"></tbody>
+</table>
+
+<script>
+
+const API_URL = "http://127.0.0.1:5000/merchants";
+
+// ================= LOAD (READ) =================
+function loadMerchants() {
+    fetch(API_URL)
+    .then(res => res.json())
+    .then(data => {
+        let table = document.getElementById("merchantTable");
+        table.innerHTML = "";
+
+        data.forEach(m => {
+            table.innerHTML += `
+                <tr>
+                    <td>${m.merchant_id}</td>
+                    <td>${m.category}</td>
+                    <td>${m.location}</td>
+                    <td>
+                        <button onclick="editMerchant(${m.merchant_id}, '${m.category}', '${m.location}')">Edit</button>
+                        <button onclick="deleteMerchant(${m.merchant_id})">Delete</button>
+                    </td>
+                </tr>
+            `;
+        });
+    })
+    .catch(err => console.error("Error:", err));
+}
+
+// ================= CREATE =================
+function addMerchant() {
+    const data = {
+        merchant_id: document.getElementById("merchant_id").value,
+        category: document.getElementById("category").value,
+        location: document.getElementById("location").value
+    };
+
+    fetch(API_URL, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        alert("Merchant Added");
+        clearForm();
+        loadMerchants();
+    });
+}
+
+// ================= DELETE =================
+function deleteMerchant(id) {
+    fetch(`${API_URL}/${id}`, {
+        method: "DELETE"
+    })
+    .then(() => {
+        alert("Merchant Deleted");
+        loadMerchants();
+    });
+}
+
+// ================= EDIT =================
+function editMerchant(id, category, location) {
+    document.getElementById("merchant_id").value = id;
+    document.getElementById("category").value = category;
+    document.getElementById("location").value = location;
+}
+
+// ================= UPDATE =================
+function updateMerchant() {
+    const id = document.getElementById("merchant_id").value;
+
+    const data = {
+        category: document.getElementById("category").value,
+        location: document.getElementById("location").value
+    };
+
+    fetch(`${API_URL}/${id}`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+    })
+    .then(() => {
+        alert("Merchant Updated");
+        clearForm();
+        loadMerchants();
+    });
+}
+
+// ================= CLEAR FORM =================
+function clearForm() {
+    document.getElementById("merchant_id").value = "";
+    document.getElementById("category").value = "";
+    document.getElementById("location").value = "";
+}
+
+// ================= AUTO LOAD =================
+loadMerchants();
+
+</script>
+
+</body>
+</html>

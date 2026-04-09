@@ -12,7 +12,7 @@ app = Flask(__name__)
 db = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="rajesh",
+    password="soni",
     database="creditcardfraud"
 )
 
@@ -298,6 +298,43 @@ def get_alerts():
     cursor.execute("SELECT * FROM fraud_alert")
     return jsonify(cursor.fetchall())
 
+
+
+# ================= MERCHANTS =================
+
+@app.route('/merchants', methods=['GET'])
+def get_merchants():
+    cursor.execute("SELECT * FROM merchants")
+    return jsonify(cursor.fetchall())
+
+@app.route('/merchants', methods=['POST'])
+def add_merchant():
+    data = request.json
+    cursor.execute(
+        "INSERT INTO merchants (merchant_id, category, location) VALUES (%s,%s,%s)",
+        (data['merchant_id'], data['category'], data['location'])
+    )
+    db.commit()
+    return jsonify({"message": "Merchant added"})
+
+@app.route('/merchants/<int:id>', methods=['PUT'])
+def update_merchant(id):
+    data = request.json
+    cursor.execute(
+        "UPDATE merchants SET category=%s, location=%s WHERE merchant_id=%s",
+        (data['category'], data['location'], id)
+    )
+    db.commit()
+    return jsonify({"message": "Updated"})
+
+@app.route('/merchants/<int:id>', methods=['DELETE'])
+def delete_merchant(id):
+    cursor.execute("DELETE FROM merchants WHERE merchant_id=%s", (id,))
+    db.commit()
+    return jsonify({"message": "Deleted"})
+
 # ================= RUN =================
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False)
+
+

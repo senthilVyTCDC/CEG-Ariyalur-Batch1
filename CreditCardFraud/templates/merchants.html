@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Merchant Table</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<h2>Merchant Table</h2>
+
+<a href="{{ url_for('add_merchant') }}">
+    <button type="button" style="margin-bottom:15px;">Add New Merchant</button>
+</a>
+
+<table class="card-table">
+    <thead>
+        <tr>
+            <th>Merchant ID</th>
+            <th>Category</th>
+            <th>Location</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in merchants %}
+        <tr>
+            <td>{{ row.merchant_id }}</td>
+            <td>{{ row.category }}</td>
+            <td>{{ row.location }}</td>
+
+            <td>
+                <a href="{{ url_for('edit_merchant', merchant_id=row.merchant_id) }}">
+                    <button class="edit-btn">Edit</button>
+                </a>
+            </td>
+
+            <td>
+                <form action="{{ url_for('delete_merchant', merchant_id=row.merchant_id) }}" method="POST">
+                    <button type="submit" class="delete-btn">Delete</button>
+                </form>
+            </td>
+
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
