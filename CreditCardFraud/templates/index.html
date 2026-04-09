@@ -1,11 +1,380 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
-    </head>
-    <body>
-        <h1>Welcome to Credit Card Fraud Detection</h1>
-    </body>
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Fraud Detection Dashboard</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+<style>
+
+body{
+margin:0;
+font-family:'Segoe UI',sans-serif;
+background:#f4f6fb;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+position:fixed;
+width:230px;
+height:100%;
+background:#111827;
+color:white;
+padding-top:20px;
+}
+
+.sidebar h4{
+text-align:center;
+margin-bottom:30px;
+}
+
+.sidebar a{
+display:block;
+padding:12px 25px;
+color:#cbd5e1;
+text-decoration:none;
+}
+
+.sidebar a:hover{
+background:#2563eb;
+color:white;
+}
+
+/* MAIN CONTENT */
+
+.main{
+margin-left:230px;
+padding:25px;
+}
+
+/* HEADER */
+
+.topbar{
+background:white;
+padding:15px 25px;
+border-radius:10px;
+box-shadow:0 4px 15px rgba(0,0,0,0.08);
+margin-bottom:25px;
+}
+
+/* CARDS */
+
+.dashboard-card{
+background:white;
+padding:25px;
+border-radius:12px;
+text-align:center;
+box-shadow:0 6px 20px rgba(0,0,0,0.08);
+transition:0.3s;
+}
+
+.dashboard-card:hover{
+transform:translateY(-6px);
+}
+
+/* FOOTER */
+
+footer{
+text-align:center;
+margin-top:40px;
+color:#6b7280;
+font-size:14px;
+}
+
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+
+</head>
+
+<body>
+
+<<<<<<< HEAD
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+
+<div class="container">
+
+<!-- Logo -->
+<a class="navbar-brand fw-bold text-success" href="#">
+💳 Fraud Detection
+</a>
+
+<!-- Mobile Menu Button -->
+<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+<span class="navbar-toggler-icon"></span>
+</button>
+
+<!-- Menu Items -->
+<div class="collapse navbar-collapse" id="navbarNav">
+
+<ul class="navbar-nav ms-auto">
+
+<li class="nav-item">
+<a class="nav-link active" href="/">Home</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="#">About Us</a>
+</li>
+
+<li class="nav-item dropdown">
+<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+Courses
+</a>
+
+<ul class="dropdown-menu">
+<li><a class="dropdown-item" href="#">Python</a></li>
+<li><a class="dropdown-item" href="#">Java</a></li>
+<li><a class="dropdown-item" href="#">React</a></li>
+</ul>
+
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="#">Corporate Training</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="#">Students Speak</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="#">Contact Us</a>
+</li>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</ul>
+
+</div>
+
+</div>
+
+</nav>
+
+<div class="container">
+=======
+>>>>>>> 2b06e26 (Added postman Transaction)
+
+<!-- SIDEBAR -->
+
+<div class="sidebar">
+
+<h4>💳 Fraud Admin</h4>
+
+<a href="/">Dashboard</a>
+
+<a href="{{ url_for('user') }}">
+Users
+</a>
+
+<a href="{{ url_for('cards') }}">
+Cards
+</a>
+
+<a href="{{ url_for('transaction') }}">
+Transactions
+</a>
+
+<a href="{{ url_for('merchant') }}">
+Merchants
+</a>
+
+</div>
+
+
+<!-- MAIN CONTENT -->
+
+<div class="main">
+
+<div class="topbar">
+
+<h4>Credit Card Fraud Detection System</h4>
+
+</div>
+
+
+<div class="row g-4">
+
+
+<div class="col-md-3">
+
+<div class="dashboard-card">
+
+<h5>Users</h5>
+
+<p>Manage system users</p>
+
+<a href="{{ url_for('user') }}" class="btn btn-primary">
+Open
+</a>
+
+
+</div>
+
+</div>
+
+
+<div class="col-md-3">
+
+<div class="dashboard-card">
+
+<h5>Cards</h5>
+
+<p>Manage credit cards</p>
+
+<a href="{{ url_for('card') }}" class="btn btn-success">
+Open
+</a>
+
+</div>
+
+</div>
+
+
+<div class="col-md-3">
+
+<div class="dashboard-card">
+
+<h5>Transactions</h5>
+
+<p>Monitor transactions</p>
+
+<a href="{{ url_for('transaction') }}" class="btn btn-warning">
+Open
+</a>
+
+</div>
+
+</div>
+
+
+<div class="col-md-3">
+
+<div class="dashboard-card">
+
+<h5>Merchants</h5>
+
+<p>Merchant information</p>
+
+<a href="{{ url_for('merchant') }}" class="btn btn-danger">
+Open
+</a>
+
+</div>
+
+</div>
+
+
+</div>
+
+
+<footer>
+
+© 2026 Credit Card Fraud Detection System
+
+</footer>
+
+</div>
+
+
+</body>
+<<<<<<< HEAD
+
+<footer style="background:#f8f9fa; padding:40px 0; margin-top:50px;">
+
+<div class="container">
+
+<div class="row">
+
+<!-- Location Section -->
+
+<div class="col-md-4">
+
+<h4>Our Location</h4>
+
+<h5>Chennai</h5>
+<p>Call: +91 7338-811-773</p>
+<p>Email: careers@vytcdc.com</p>
+
+<h5>Pondicherry</h5>
+<p>Call: +91-89259 03732</p>
+
+<h5>Karur</h5>
+<p>Call: +91 91500-78059</p>
+
+<h5>Ariyalur</h5>
+<p>Call: +91 7669836698</p>
+<p>Email: securitysystem@gmail.com</p>
+
+</div>
+
+<!-- More Links -->
+
+<div class="col-md-4">
+
+<h4>More links</h4>
+
+
+<p>Bank Holidays</p>
+<p>Global Services</p>
+<p>History</p>
+<p>Security</p>
+<p>Leadership</p>
+<p>Complaints</p>
+<p>Financial Education</p>
+<p>RBI Clarifications</p>
+<p>Important Websites</p>
+
+
+</div>
+
+<!-- Social Media Section -->
+
+<div class="col-md-4">
+
+<h4>Follow Us</h4>
+
+<div style="font-size:25px; margin-top:15px;">
+
+<a href="#" style="margin-right:15px; color:#1877F2;">
+<i class="fab fa-facebook"></i>
+</a>
+
+<a href="#" style="margin-right:15px; color:#E4405F;">
+<i class="fab fa-instagram"></i>
+</a>
+
+<a href="#" style="margin-right:15px; color:#25D366;">
+<i class="fab fa-whatsapp"></i>
+</a>
+
+<a href="#" style="margin-right:15px; color:black;">
+<i class="fab fa-x-twitter"></i>
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+<hr>
+
+<p class="text-center">
+Copyright 2026. All Rights Reserved.
+</p>
+
+</div>
+</footer>
+
+=======
+>>>>>>> 2b06e26 (Added postman Transaction)
 </html>
