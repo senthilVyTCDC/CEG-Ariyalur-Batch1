@@ -1,213 +1,278 @@
 import streamlit as st
 import requests
 import pandas as pd
-from datetime import datetime
+import plotly.express as px
 
 BASE_URL = "http://127.0.0.1:5000"
 
-st.set_page_config(page_title="Fraud Detection System", layout="wide")
+st.set_page_config(page_title="Fraud Detection Dashboard", layout="wide")
 
-if "page" not in st.session_state:
-    st.session_state.page = "Users"
+# ================= SESSION =================
+if "main_page" not in st.session_state:
+    st.session_state.main_page = "HOME"
 
-menu = st.sidebar.selectbox("Module", [
-    "Users",
-    "Cards",
-    "Transactions",
-    "Fraud Detection",
-    "Fraud Alerts"
+if "sub_page" not in st.session_state:
+    st.session_state.sub_page = None
+
+# ================= SIDEBAR =================
+st.sidebar.title("📊 Dashboard")
+
+st.session_state.main_page = st.sidebar.radio("Navigation", [
+    "HOME",
+    "KEY METRICS",
+    "FILTERS",
+    "ANALYTICS",
+    "RECENT FRAUD ALERTS",
+    "INSIGHTS"
 ])
 
-# ================= USERS =================
-if menu == "Users":
+# ================= API =================
+def fetch_data(endpoint):
+    try:
+        res = requests.get(f"{BASE_URL}/{endpoint}")
+        return pd.DataFrame(res.json())
+    except:
+        return pd.DataFrame()
 
+def post_data(endpoint, payload):
+    try:
+        res = requests.post(f"{BASE_URL}/{endpoint}", json=payload)
+        return res.json()
+    except:
+        return {"message": "Error"}
+
+# ================= LOAD DATA =================
+users_df = fetch_data("users")
+cards_df = fetch_data("cards")
+transactions_df = fetch_data("transactions")
+
+# ================= SAFE FRAUD =================
+if not transactions_df.empty:
+    if "amount" in transactions_df.columns:
+        transactions_df["is_fraud"] = transactions_df["amount"].apply(lambda x: 1 if x > 50000 else 0)
+    else:
+        transactions_df["is_fraud"] = 0
+
+# ================= BACK BUTTON =================
+if st.session_state.sub_page:
+    if st.button("⬅ Back to Dashboard"):
+        st.session_state.sub_page = None
+        st.rerun()
+
+# ================= HOME =================
+if st.session_state.main_page == "HOME" and not st.session_state.sub_page:
+
+    st.title("🏠 Home Dashboard")
+
+    option = st.selectbox("Select Module", [
+        "Users",
+        "Cards",
+        "Transactions"
+    ])
+
+    if st.button("Open Module"):
+        st.session_state.sub_page = option
+        st.rerun()
+
+# ================= USERS =================
+if st.session_state.sub_page == "Users":
     st.header("👤 Users")
 
-    if st.button("Load Users"):
-        df = pd.DataFrame(requests.get(f"{BASE_URL}/users").json())
-        if not df.empty:
-            st.dataframe(df)
+    st.subheader("➕ Add User")
 
-            st.subheader("📊 Account Type Distribution")
-            st.bar_chart(df["account_type"].value_counts())
+    col1, col2 = st.columns(2)
 
-            df["age_group"] = df["age"].apply(
-                lambda x: "Below 25" if x < 25 else "25-50" if x <= 50 else "Above 50"
-            )
+    with col1:
+        name = st.text_input("Name")
+        phone = st.text_input("Phone Number")
+        user_id = st.number_input("User ID", step=1)
 
-            st.subheader("📊 Age Group Distribution")
-            st.bar_chart(df["age_group"].value_counts())
+    with col2:
+        avg_spend = st.number_input("Avg Monthly Spend")
+        age = st.number_input("Age")
+        acc_age_days = st.number_input("Account Age (Days)")
+        acc_type = st.selectbox("Account Type", ["Savings", "Current"])
 
-    with st.expander("➕ Add User"):
-        uid = st.number_input("User ID", key="u1")
-        name = st.text_input("Name", key="u2")
-        phone = st.text_input("Phone", key="u3")
-        age = st.number_input("Age", key="u4")
-        acc = st.selectbox("Account Type", ["savings","current","premium"], key="u5")
-        days = st.number_input("Account Age Days", key="u6")
+    if st.button("Add User"):
+        if name and phone:
+         payload = {
+            "name": name,
+            "phone_number": phone,
+            "user_id": user_id,
+            "avg_monthly_spend": avg_spend,
+            "age": age,
+            "acc_age_days": acc_age_days,
+            "acc_type": acc_type
+        }
+        post_data("users", payload)
+        st.success("✅ User Added Successfully")
 
-        if st.button("Add User"):
-            requests.post(f"{BASE_URL}/users", json={
-                "user_id": uid,
-                "name": name,
-                "phone": phone,
-                "age": age,
-                "account_type": acc,
-                "account_age_days": days
-            })
-            st.success("User Added")
 
-    with st.expander("✏️ Update User"):
-        uid = st.number_input("User ID", key="u7")
-        name = st.text_input("New Name", key="u8")
-        phone = st.text_input("New Phone", key="u9")
-        age = st.number_input("New Age", key="u10")
-        acc = st.selectbox("Account Type", ["savings","current","premium"], key="u11")
-        days = st.number_input("Account Age Days", key="u12")
-
-        if st.button("Update User"):
-            requests.put(f"{BASE_URL}/users/{int(uid)}", json={
-                "name": name,
-                "phone": phone,
-                "age": age,
-                "account_type": acc,
-                "account_age_days": days
-            })
-            st.success("User Updated")
-
-    with st.expander("🗑 Delete User"):
-        uid = st.number_input("User ID", key="u13")
-        if st.button("Delete User"):
-            requests.delete(f"{BASE_URL}/users/{int(uid)}")
-            st.success("User Deleted")
+    st.divider()
+    st.dataframe(users_df)
 
 # ================= CARDS =================
-elif menu == "Cards":
-
+elif st.session_state.sub_page == "Cards":
     st.header("💳 Cards")
 
-    if st.button("Load Cards"):
-        df = pd.DataFrame(requests.get(f"{BASE_URL}/cards").json())
-        if not df.empty:
-            st.dataframe(df)
+    st.subheader("➕ Add Card")
 
-            st.subheader("📊 Card Limit Distribution")
-            st.bar_chart(df["card_limit"].value_counts())
+    col1, col2 = st.columns(2)
 
-    with st.expander("➕ Add Card"):
-        cid = st.number_input("Card ID", key="c1")
-        uid = st.number_input("User ID", key="c2")
-        limit = st.selectbox("Limit", [50000,100000,150000,200000], key="c3")
-        status = st.selectbox("Status", ["active","blocked"], key="c4")
-        freq = st.number_input("Usage Frequency", key="c5")
+    with col1:
+        user_id = st.number_input("User ID", step=1)
+        card_id = st.number_input("Card ID", step=1)
+        card_limit = st.number_input("Card Limit")
 
-        if st.button("Add Card"):
-            requests.post(f"{BASE_URL}/cards", json={
-                "card_id": cid,
-                "user_id": uid,
-                "card_limit": limit,
-                "card_status": status,
-                "usage_frequency": freq
-            })
-            st.success("Card Added")
+    with col2:
+        card_status = st.selectbox("Card Status", ["Active", "Blocked"])
+        usage_frequency = st.number_input("Usage Frequency")
 
-    with st.expander("✏️ Update Card"):
-        cid = st.number_input("Card ID", key="c6")
-        limit = st.selectbox("Limit", [50000,100000,150000,200000], key="c7")
-        status = st.selectbox("Status", ["active","blocked"], key="c8")
-        freq = st.number_input("Usage Frequency", key="c9")
+    if st.button("Add Card"):
+        if user_id and card_id:
+         payload = {
+            "user_id": user_id,
+            "card_id": card_id,
+            "card_limit": card_limit,
+            "card_status": card_status,
+            "usage_frequency": usage_frequency
+        }
+        post_data("cards", payload)
+        st.success("✅ Card Added Successfully")
+        st.rerun()
 
-        if st.button("Update Card"):
-            requests.put(f"{BASE_URL}/cards/{int(cid)}", json={
-                "card_limit": limit,
-                "card_status": status,
-                "usage_frequency": freq
-            })
-            st.success("Card Updated")
 
-    with st.expander("🗑 Delete Card"):
-        cid = st.number_input("Card ID", key="c10")
-        if st.button("Delete Card"):
-            requests.delete(f"{BASE_URL}/cards/{int(cid)}")
-            st.success("Card Deleted")
+
+    st.divider()
+    st.dataframe(cards_df)
 
 # ================= TRANSACTIONS =================
-elif menu == "Transactions":
+elif st.session_state.sub_page == "Transactions":
+    st.header("💰 Transactions")
 
-    st.header("💸 Transactions")
+    st.subheader("➕ Add Transaction")
 
-    if st.button("Load Transactions"):
-        df = pd.DataFrame(requests.get(f"{BASE_URL}/transactions").json())
-        if not df.empty:
-            st.dataframe(df)
+    col1, col2, col3 = st.columns(3)
 
-            st.subheader("📈 Transaction Amount Over Time")
-            df["transaction_time"] = pd.to_datetime(df["transaction_time"])
-            st.line_chart(df.set_index("transaction_time")["amount"])
+    with col1:
+        transaction_id = st.number_input("Transaction ID", step=1)
+        user_id = st.number_input("User ID", step=1)
+        card_id = st.number_input("Card ID", step=1)
+        amount = st.number_input("Amount")
 
-            st.subheader("📊 Transaction Type Distribution")
-            st.bar_chart(df["transaction_type"].value_counts())
+    with col2:
+        transaction_type = st.selectbox("Transaction Type", ["Online", "POS", "ATM"])
+        device_type = st.selectbox("Device Type", ["Mobile", "Laptop", "ATM"])
+        location = st.text_input("Location")
 
-            st.subheader("📊 Device Usage Distribution")
-            st.bar_chart(df["device_type"].value_counts())
+    with col3:
+        merchant_id = st.number_input("Merchant ID", step=1)
 
-    with st.expander("➕ Add Transaction"):
-        tid = st.number_input("Transaction ID", key="t1")
-        uid = st.number_input("User ID", key="t2")
-        cid = st.number_input("Card ID", key="t3")
-        mid = st.number_input("Merchant ID", key="t4")
-        amt = st.number_input("Amount", key="t5")
-        time = st.text_input("Transaction Time (YYYY-MM-DD HH:MM:SS)",value=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),key="t6")
+    if st.button("Add Transaction"):
+        if user_id and card_id and amount:
+         payload = {
+            "transaction_id": transaction_id,
+            "user_id": user_id,
+            "card_id": card_id,
+            "amount": amount,
+            "transaction_type": transaction_type,
+            "device_type": device_type,
+            "location": location,
+            "merchant_id": merchant_id
+        }
+        post_data("transactions", payload)
+        st.success("✅ Transaction Added Successfully")
+        st.rerun()
 
-        loc = st.selectbox("Location",
-            ["Chennai","Delhi","Mumbai","Bangalore","Hyderabad"], key="t7")
 
-        dev = st.selectbox("Device",
-            ["mobile","ATM","POS"], key="t8")
+    st.divider()
+    st.dataframe(transactions_df)
 
-        typ = st.selectbox("Type",
-            ["online","withdrawal","swipe"], key="t9")
+# ================= KEY METRICS =================
+elif st.session_state.main_page == "KEY METRICS":
 
-        freq = st.number_input("Transaction Frequency", min_value=1, value=1, key="t10")
+    st.title("📌 Key Metrics")
 
-        if st.button("Add Transaction"):
-            res = requests.post(f"{BASE_URL}/transactions", json={
-                "transaction_id": tid,
-                "user_id": uid,
-                "card_id": cid,
-                "merchant_id": mid,
-                "amount": amt,
-                "transaction_time": time,
-                "location": loc,
-                "device_type": dev,
-                "transaction_type": typ,
-                "transaction_frequency": freq
-            }).json()
+    col1, col2, col3, col4 = st.columns(4)
 
-            st.success(f"Fraud Probability: {res['fraud_probability']:.2f}")
+    col1.metric("Users", len(users_df))
+    col2.metric("Cards", len(cards_df))
+    col3.metric("Transactions", len(transactions_df))
+    col4.metric("Frauds", transactions_df["is_fraud"].sum())
 
-# ================= FRAUD DETECTION =================
-elif menu == "Fraud Detection":
+# ================= FILTERS =================
+elif st.session_state.main_page == "FILTERS":
 
-    st.header("⚠️ Fraud Detection")
+    st.title("🔍 Filters")
 
-    if st.button("Run Detection"):
-        df = pd.DataFrame(requests.get(f"{BASE_URL}/detect_fraud").json())
-        if not df.empty:
-            st.dataframe(df)
+    if not transactions_df.empty and "location" in transactions_df.columns and "device_type" in transactions_df.columns:
 
-            st.subheader("📊 Fraud vs Normal")
-            st.bar_chart(df["status"].value_counts())
+        location = st.selectbox("Location", transactions_df["location"].dropna().unique())
+        device = st.selectbox("Device", transactions_df["device_type"].dropna().unique())
 
-# ================= FRAUD ALERTS =================
-elif menu == "Fraud Alerts":
+        filtered = transactions_df[
+            (transactions_df["location"] == location) &
+            (transactions_df["device_type"] == device)
+        ]
 
-    st.header("🚨 Fraud Alerts")
+        st.dataframe(filtered)
 
-    if st.button("Load Alerts"):
-        df = pd.DataFrame(requests.get(f"{BASE_URL}/alerts").json())
-        if not df.empty:
-            st.dataframe(df)
+    else:
+        st.warning("Required columns not available")
 
-            st.subheader("📊 Alert Distribution")
-            st.bar_chart(df["alert_status"].value_counts())
+# ================= ANALYTICS =================
+elif st.session_state.main_page == "ANALYTICS":
+
+    st.title("📊 Analytics")
+
+    if not transactions_df.empty:
+
+        chart = st.selectbox("Select Chart", [
+            "Fraud vs Normal",
+            "Top Locations",
+            "Device Usage"
+        ])
+
+        if chart == "Fraud vs Normal":
+            fig = px.pie(transactions_df, names="is_fraud")
+            st.plotly_chart(fig, use_container_width=True)
+
+        elif chart == "Top Locations" and "location" in transactions_df.columns:
+            loc = transactions_df["location"].value_counts().reset_index()
+            loc.columns = ["location", "count"]
+            fig = px.bar(loc, x="location", y="count")
+            st.plotly_chart(fig, use_container_width=True)
+
+        elif chart == "Device Usage" and "device_type" in transactions_df.columns:
+            dev = transactions_df["device_type"].value_counts().reset_index()
+            dev.columns = ["device", "count"]
+            fig = px.bar(dev, x="device", y="count")
+            st.plotly_chart(fig, use_container_width=True)
+
+# ================= ALERTS =================
+elif st.session_state.main_page == "RECENT FRAUD ALERTS":
+
+    st.title("🚨 Recent Fraud Alerts")
+
+    frauds = transactions_df[transactions_df["is_fraud"] == 1]
+
+    if not frauds.empty:
+        st.dataframe(frauds.head(10))
+    else:
+        st.success("No fraud transactions detected")
+
+# ================= INSIGHTS =================
+elif st.session_state.main_page == "INSIGHTS":
+
+    st.title("💡 Insights")
+
+    total = len(transactions_df)
+    fraud = transactions_df["is_fraud"].sum()
+
+    st.success(f"Total Transactions: {total}")
+    st.error(f"Fraud Transactions: {fraud}")
+
+    if fraud > 0:
+        st.warning("⚠️ Fraud activity detected")
+    else:
+        st.info("System looks safe ✅")
